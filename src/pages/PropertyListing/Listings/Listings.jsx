@@ -768,10 +768,18 @@ const Listing = () => {
 
     fetchAndFilterProperties(
       cityParam || city,
-      areaParam.length > 0 ? areaParam : [],
-      localityParam || ""
+      areaParam.length > 0 ? areaParam : selectedArea,
+      localityParam || selectedLocality
     );
+    //setting area params
+    if (areaParam.length > 0) {
+      setSelectedArea(areaParam);
+    }
 
+    //setting locality params
+    if (localityParam) {
+      setSelectedLocality(localityParam);
+    }
     // Set the selected sort based on URL parameter
     if (sortParam) {
       const sortLabels = {
@@ -882,6 +890,12 @@ const Listing = () => {
   const handleSearchSelection = (value, type) => {
     const queryParams = new URLSearchParams(location.search);
 
+    // To trigger immediate search
+    fetchAndFilterProperties(
+      city,
+      type === "area" ? currentAreas : selectedArea,
+      type === "locality" ? value : selectedLocality
+    );
     if (type === "locality") {
       handleLocalitySelect(value);
       queryParams.set("locality", value);

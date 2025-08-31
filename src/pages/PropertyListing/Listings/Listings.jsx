@@ -1394,7 +1394,7 @@ const Listing = () => {
           <Map
             defaultZoom={11}
             minZoom={10}
-            maxZoom={14}
+            maxZoom={13}
             defaultCenter={mapCenter}
             mapId={import.meta.env.VITE_GOOGLE_MAPS_ID}
             onLoad={(map) => setMapInstance(map)}

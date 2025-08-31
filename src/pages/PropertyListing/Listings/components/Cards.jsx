@@ -202,7 +202,10 @@ const Cards = ({ properties, favouriteList, setFavouriteList }) => {
                   {property.images.map((photo, index) => (
                     <div key={index}>
                       <img
-                        src={photo || "https://www.toletglobe.in/assets/defaultHouse-DGzmkHRH.png"}
+                        src={
+                          photo ||
+                          "https://www.toletglobe.in/assets/defaultHouse-DGzmkHRH.png"
+                        }
                         alt={property.propertyType}
                         className="w-full h-[180px] lg:h-[260px] object-cover"
                         onError={handleImageError}
@@ -213,7 +216,10 @@ const Cards = ({ properties, favouriteList, setFavouriteList }) => {
               ) : (
                 <div className="relative">
                   <img
-                    src={property.images[0] || "https://www.toletglobe.in/assets/defaultHouse-DGzmkHRH.png"}
+                    src={
+                      property.images[0] ||
+                      "https://www.toletglobe.in/assets/defaultHouse-DGzmkHRH.png"
+                    }
                     alt={property.propertyType}
                     className="w-full h-[180px] lg:h-[262px] object-cover"
                     onError={handleImageError}
@@ -247,7 +253,9 @@ const Cards = ({ properties, favouriteList, setFavouriteList }) => {
                 </div>
               </div>
             </figure>
-            <div className="card-content lg:p-1 sm:p-1 flex flex-col flex-grow"> {/* Added flex properties */}
+            <div className="card-content lg:p-1 sm:p-1 flex flex-col flex-grow">
+              {" "}
+              {/* Added flex properties */}
               <div className="name_icon flex justify-between pt-2 ">
                 <h3 className="card-title lg:text-xl text-[14px] lg:font-semibold font-medium font-poppins ">
                   <a href="#">
@@ -376,29 +384,52 @@ const Cards = ({ properties, favouriteList, setFavouriteList }) => {
                   </Popup>
                 </div>
               </div>
-
-              <div className="card-details flex flex-col items-center flex-grow"> {/* Added flex-grow */}
+              <div className="card-details flex flex-col items-center flex-grow">
+                {" "}
+                {/* Added flex-grow */}
                 <div className="card-price font-poppins text-xs lg:text-base font-normal text-[#808080] -mt-1 lg:mt-0">
                   RS. {parseInt(property.rent, 10).toLocaleString("en-IN")}
                 </div>
                 {/* If property.preference is "Bachelors" then render property.bachelors in a () */}
-                {property.preference === "Bachelors" && property.ownerLocation && (
+                {property.preference === "Bachelors" && (
                   <div className="card-text font-poppins py-3 lg:text-lg text-xs font-semibold text-[#505050]">
-                    Owner {property.ownerLocation.toLowerCase()}, {property.preference}({property.bachelors})
+                    {property.ownerLocation && (
+                      <span>
+                        Owner {property.ownerLocation.toLowerCase()},<br />
+                      </span>
+                    )}
+                    Preference: {property.preference}({property.bachelors})
                   </div>
                 )}
                 {/* If property.preference is "Family" then render property.family in a () */}
-                {property.preference === "Family" && property.ownerLocation && (
+                {property.preference === "Family" && (
                   <div className="card-text font-poppins py-3 lg:text-lg text-xs font-semibold text-[#505050]">
-                    {property.ownerLocation}, {property.preference}
+                    {property.ownerLocation && (
+                      <span>
+                        Owner {property.ownerLocation.toLowerCase()}, <br />
+                      </span>
+                    )}
+                    Preference: {property.preference}
                   </div>
                 )}
-                {!property.ownerLocation && (
+                {property.preference === "Both" && (
                   <div className="card-text font-poppins py-3 lg:text-lg text-xs font-semibold text-[#505050]">
-                    {property.type ? property.type : "NA" }, {property.floor ? property.floor : "NA" }
+                    {property.ownerLocation && (
+                      <span>
+                        Owner {property.ownerLocation.toLowerCase()}, <br />
+                      </span>
+                    )}
+                    Preference: Family & Bachelors(
+                    {property.bachelors})
                   </div>
                 )}
-              </div>  
+                {/* {!property.ownerLocation && (
+                  <div className="card-text font-poppins py-3 lg:text-lg text-xs font-semibold text-[#505050]">
+                    {property.type ? property.type : "NA"},{" "}
+                    {property.floor ? property.floor : "NA"}
+                  </div>
+                )} */}
+              </div>
               <ul className="card-list custom-card-list pb-3 lg:py-2 ">
                 <li className="bed card-item flex items-center text-base">
                   <IoBedOutline className="text-lg lg:text-3xl" />
@@ -417,7 +448,9 @@ const Cards = ({ properties, favouriteList, setFavouriteList }) => {
                 </li>
               </ul>
             </div>
-            <div className="card-footer pt-3 lg:pt-3 flex justify-between border-t-2 mt-auto"> {/* Added mt-auto */}
+            <div className="card-footer pt-3 lg:pt-3 flex justify-between border-t-2 mt-auto">
+              {" "}
+              {/* Added mt-auto */}
               <div className="card-author flex items-center gap-1">
                 <figure className="author-avatar lg:w-8 lg:h-8 w-6 h-6 overflow-hidden rounded-full">
                   <img

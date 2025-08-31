@@ -62,11 +62,11 @@ const PoiMarkers = (locs) => {
                     color: "#333",
                   }}
                 >
-                  {loc.property.locality}
+                  {loc.property.area}
                 </h3>
                 <div style={{ fontSize: "12px", color: "#666" }}>
                   <p style={{ margin: "4px 0" }}>
-                    <strong>Type:</strong> {loc.property.type || "N/A"}
+                    <strong>Type:</strong> {loc.property.propertyType || "N/A"}
                   </p>
                   <p style={{ margin: "4px 0" }}>
                     <strong>BHK:</strong> {loc.property.bhk || "N/A"}
@@ -76,6 +76,17 @@ const PoiMarkers = (locs) => {
                       <strong>Rent:</strong> ₹{loc.property.rent}
                     </p>
                   )}
+                  {/* {loc.property.ownwerLoation && ( */}
+                  <p style={{ margin: "4px 0" }}>
+                    <strong>Owner Loc:</strong>
+                    {loc.property.ownwerLoation || "Not available"}
+                  </p>
+                  <p style={{ margin: "4px 0" }}>
+                    <strong>Preference:</strong>
+                    {loc.property.preference || "Not available"}
+                  </p>
+
+                  {/* )} */}
                 </div>
               </div>
             </InfoWindow>

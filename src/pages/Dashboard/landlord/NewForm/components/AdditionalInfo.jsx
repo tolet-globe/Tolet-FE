@@ -1,54 +1,92 @@
 import Select from "react-select";
 import Pricing from "../PricngCard";
+import React, { useRef } from "react";
+
+
 
 const AdditionalInfo = ({ formData, setFormData }) => {
   const { propertyType } = formData;
+  
 
-  const customSelectStyles = {
-    control: (base) => ({
-      ...base,
-      backgroundColor: "none",
+const customSelectStyles = {
+  control: (base) => ({
+    ...base,
+    backgroundColor: "none",
+    color: "white",
+    minHeight: "3.5rem",
+    borderRadius: "0.375rem",
+    border: "2px solid #C8C8C8",
+    padding: "0 0.25rem",
+    boxShadow: "none",
+    display: "flex",
+    alignItems: "center",
+    overflowX: "auto", // enable horizontal scroll
+  }),
+  valueContainer: (base) => ({
+    ...base,
+    display: "flex",
+    flexWrap: "nowrap", // no wrapping
+    gap: "6px",
+    padding: "4px 8px",
+    overflowX: "auto", // horizontal scroll
+    scrollbarWidth: "thin",
+    scrollbarColor: "#C8C8C8 transparent",
+    maxWidth: "100%", // prevent overflow beyond control
+  }),
+  multiValue: (base) => ({
+    ...base,
+    backgroundColor: "#C8C8C8",
+    color: "black",
+    borderRadius: "6px",
+    display: "flex",
+    alignItems: "center",
+    padding: "2px 6px",
+    whiteSpace: "nowrap", // keep tags in one line
+  }),
+  multiValueLabel: (base) => ({
+    ...base,
+    color: "black",
+    fontSize: "14px",
+  }),
+  multiValueRemove: (base) => ({
+    ...base,
+    color: "black",
+    ':hover': {
+      backgroundColor: "#999",
       color: "white",
-      height: "3.5rem",
-      borderRadius: "0.375rem",
-      border: "2px solid #C8C8C8",
-      padding: "0 0.25rem",
-      boxShadow: "white",
-    }),
-    placeholder: (base) => ({
-      ...base,
-      color: "none",
-    }),
-    singleValue: (base) => ({
-      ...base,
-      color: "white",
-    }),
-    menu: (base) => ({
-      ...base,
-      backgroundColor: "black",
-      border: "1px solid #C8C8C8",
-      borderRadius: "0.375rem",
-      marginTop: "0.1rem",
-      zIndex: 999,
-    }),
-    option: (base, state) => ({
-      ...base,
-      backgroundColor: state.isSelected
-        ? "none" // selected
-        : state.isFocused
-        ? "none" // hover (Tailwind gray-600)
-        : "none",
-      color: "white",
-      padding: "12px 16px",
-      cursor: "pointer",
-      borderLeft: state.isSelected
-        ? "5px solid #C8C8C8"
-        : state.isFocused
-        ? "5px solid #C8C8C8"
-        : "none", // selected
-      borderBottom: "2.5px solid #C8C8C8",
-    }),
-  };
+    },
+  }),
+  placeholder: (base) => ({
+    ...base,
+    color: "#A0A0A0",
+  }),
+  singleValue: (base) => ({
+    ...base,
+    color: "white",
+  }),
+  menu: (base) => ({
+    ...base,
+    backgroundColor: "black",
+    border: "1px solid #C8C8C8",
+    borderRadius: "0.375rem",
+    marginTop: "0.1rem",
+    zIndex: 9999,
+  }),
+  option: (base, state) => ({
+    ...base,
+    backgroundColor: state.isSelected ? "#222" : state.isFocused ? "#333" : "black",
+    color: "white",
+    padding: "12px 16px",
+    cursor: "pointer",
+    borderLeft: state.isSelected
+      ? "5px solid #C8C8C8"
+      : state.isFocused
+      ? "5px solid #C8C8C8"
+      : "none",
+    borderBottom: "2.5px solid #C8C8C8",
+  }),
+};
+
 
   const preferenceOptions = [
     { value: "Bachelors", label: "Bachelors" },
@@ -83,12 +121,12 @@ const AdditionalInfo = ({ formData, setFormData }) => {
   ];
 
   const ownerLocationOptions = [
-    { value: "Lives in same property", label: "Lives in same property" },
+    { value: "Lives in same property", label: "Owner Lives in same property" },
     {
-      value: "Lives in different property",
-      label: "Lives in different property",
+      value: "Lives in same city",
+      label: "Owner Lives in diffrent property",
     },
-    { value: "Lives in different city", label: "Lives in different city" },
+    { value: "Lives in different ", label: "Owner Lives in different city" },
   ];
 
   const appliancesOptions = [
@@ -204,7 +242,7 @@ const AdditionalInfo = ({ formData, setFormData }) => {
 
             <div>
               <label className="block mb-2 text-[#FFFFFF] text-base font-medium">
-                Owner's Location<span className="text-red-600">*</span>
+                Owner's Locn<span className="text-red-600">*</span>
               </label>
               <Select
                 required
@@ -382,7 +420,7 @@ const AdditionalInfo = ({ formData, setFormData }) => {
             {/* Appliances */}
             <div>
               <label className="block mb-2 text-[#FFFFFF] text-base font-medium">
-                Appliances
+                Appliances<span className="text-red-600">*</span>
               </label>
               <div className="mt-5 w-[100%]  text-[#000000] text-[16px] leading-[24px] font-normal">
                 <Select

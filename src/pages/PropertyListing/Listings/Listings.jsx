@@ -39,6 +39,34 @@ const Listing = () => {
     Kota: { lat: 25.2138, lng: 75.8648 },
   };
 
+  const pincodeMapping = {
+  Lucknow: {
+    Kamta: "226028",
+    Nishatganj: "226006",
+    Hazratganj: "226001",
+    "Gomti Nagar": "226010",
+    "Sushant Golf City": "226030",
+    Khargapur: "226016",
+    Chinhat: "226028",
+    "Indira Nagar": "226016",
+    Aliganj: "226024",
+    Rajajipuram: "226017",
+  },
+  Ayodhya: {
+    Bakhtiarpur: "224001",
+    Bhadohi: "224002",
+  },
+  Vellore: {
+    "Vellore Cantonment": "632001",
+    "Gandhi Nagar": "632006",
+  },
+  Kota: {
+    "Kota Cantonment": "324001",
+    "Kota East": "324002",
+  },
+};
+
+
   const localityCoordinates = {
     Lucknow: {
       Kamta: { lat: 26.8868, lng: 81.0586 },
@@ -123,6 +151,8 @@ const Listing = () => {
   const params = new URLSearchParams(queryString);
   const residential = params.get("residential"); // Example: Get the value of 'param1'
   const commercial = params.get("commercial"); // Example: Get the value of 'param1'
+  const [pinCode, setPinCode] = useState("");//state for pincode mapping
+
 
   const [filters, setFilters] = useState({
     bhk: [],
@@ -222,6 +252,19 @@ const Listing = () => {
       console.warn(`No borders for ${selectedLocality} in ${city}`);
     }
   }, [selectedLocality, city]);
+
+  //trigger when city or locality changes
+  useEffect(() => {
+  if (city && selectedLocality) {
+    const cityData = pincodeMapping[city];
+    if (cityData && cityData[selectedLocality]) {
+      setPinCode(cityData[selectedLocality]);
+    } else {
+      setPinCode(""); // Reset if not found
+    }
+  }
+}, [city, selectedLocality]);
+
 
   // Add useEffect to handle clicks outside the panel
   useEffect(() => {

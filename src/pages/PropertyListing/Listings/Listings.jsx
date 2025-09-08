@@ -890,26 +890,29 @@ const Listing = () => {
   const handleSearchSelection = (value, type) => {
     const queryParams = new URLSearchParams(location.search);
 
-    // To trigger immediate search
-    fetchAndFilterProperties(
-      city,
-      type === "area" ? currentAreas : selectedArea,
-      type === "locality" ? value : selectedLocality
-    );
     if (type === "locality") {
+      // Update locality selection
       handleLocalitySelect(value);
       queryParams.set("locality", value);
+
+      // Trigger search with updated locality
+      fetchAndFilterProperties(city, selectedArea, value);
     } else {
-      addLocality(value);
-      const currentAreas = selectedArea.includes(value)
+      // Compute updated areas before using it
+      const newAreas = selectedArea.includes(value)
         ? selectedArea.filter((area) => area !== value)
         : [...selectedArea, value];
 
-      if (currentAreas.length > 0) {
-        queryParams.set("area", currentAreas.join(","));
+      // Update state and query params for areas
+      setSelectedArea(newAreas);
+      if (newAreas.length > 0) {
+        queryParams.set("area", newAreas.join(","));
       } else {
         queryParams.delete("area");
       }
+
+      // Trigger search with updated areas
+      fetchAndFilterProperties(city, newAreas, selectedLocality);
     }
 
     setSearchQuery("");

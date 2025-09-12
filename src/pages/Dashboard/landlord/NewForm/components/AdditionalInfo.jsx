@@ -1,93 +1,113 @@
 import Select from "react-select";
 import Pricing from "../PricngCard";
-import React, { useRef } from "react";
+import { useState,useRef,useLayoutEffect } from "react";
 
+const MAX_VISIBLE = 3; // show only 3 chips at a time
+const CustomMultiValueContainer = (props) => {
+  const { data, selectProps } = props;
+  const { value = [], startIndex = 0 } = selectProps;
+  const visibleValues = value.slice(startIndex, startIndex + MAX_VISIBLE);
+
+  if (!visibleValues.find((v) => v.value === data.value)) return null;
+
+  return (
+    <div
+      style={{
+        marginRight: "5px",
+        background: "#444",
+        padding: "5px 10px",
+        borderRadius: "6px",
+        color: "white",
+        whiteSpace:"nowrap"
+      }}
+    >
+      {data.label}
+      <span
+        style={{ marginLeft: "6px", cursor: "pointer" }}
+        onClick={() => selectProps.onRemove?.(data)}
+      >
+        ✕
+      </span>
+    </div>
+  );
+};
 
 
 const AdditionalInfo = ({ formData, setFormData }) => {
   const { propertyType } = formData;
+  const [applianceIndex, setApplianceIndex] = useState(0);
+  const [amenitiesIndex, setAmenitiesIndex] = useState(0);
   
+// ✅ Use unique names
+const handleAppliancesChangeCarousel = (selected) => {
+  setFormData({ ...formData, appliances: selected.map((s) => s.value) });
+  // Auto-scroll to last selected
+  setApplianceIndex(Math.max(0, selected.length - MAX_VISIBLE));
+};
 
+const handleAmenitiesChangeCarousel = (selected) => {
+  setFormData({ ...formData, amenities: selected.map((s) => s.value) });
+  setAmenitiesIndex(Math.max(0, selected.length - MAX_VISIBLE));
+};
 const customSelectStyles = {
-  control: (base) => ({
-    ...base,
-    backgroundColor: "none",
-    color: "white",
-    minHeight: "3.5rem",
-    borderRadius: "0.375rem",
-    border: "2px solid #C8C8C8",
-    padding: "0 0.25rem",
-    boxShadow: "none",
+  control: (provided) => ({
+    ...provided,
+    backgroundColor: "#000000",   // black input background
+    color: "#ffffff",
+    borderColor: "#ffffff",
+    minHeight: "3.5rem",          // consistent height
+  }),
+  valueContainer: (provided) => ({
+    ...provided,
     display: "flex",
-    alignItems: "center",
-    overflowX: "auto", // enable horizontal scroll
+    flexWrap: "nowrap",           // 👈 keeps chips in one row
+    overflow: "hidden",           // 👈 prevent vertical growth
   }),
-  valueContainer: (base) => ({
-    ...base,
-    display: "flex",
-    flexWrap: "nowrap", // no wrapping
-    gap: "6px",
-    padding: "4px 8px",
-    overflowX: "auto", // horizontal scroll
-    scrollbarWidth: "thin",
-    scrollbarColor: "#C8C8C8 transparent",
-    maxWidth: "100%", // prevent overflow beyond control
-  }),
-  multiValue: (base) => ({
-    ...base,
-    backgroundColor: "#C8C8C8",
-    color: "black",
-    borderRadius: "6px",
-    display: "flex",
-    alignItems: "center",
-    padding: "2px 6px",
-    whiteSpace: "nowrap", // keep tags in one line
-  }),
-  multiValueLabel: (base) => ({
-    ...base,
-    color: "black",
-    fontSize: "14px",
-  }),
-  multiValueRemove: (base) => ({
-    ...base,
-    color: "black",
-    ':hover': {
-      backgroundColor: "#999",
-      color: "white",
-    },
-  }),
-  placeholder: (base) => ({
-    ...base,
-    color: "#A0A0A0",
-  }),
-  singleValue: (base) => ({
-    ...base,
-    color: "white",
-  }),
-  menu: (base) => ({
-    ...base,
-    backgroundColor: "black",
-    border: "1px solid #C8C8C8",
-    borderRadius: "0.375rem",
-    marginTop: "0.1rem",
+  menu: (provided) => ({
+    ...provided,
+    backgroundColor: "#1f1f1f",   // dropdown background
+    color: "#ffffff",
     zIndex: 9999,
   }),
-  option: (base, state) => ({
-    ...base,
-    backgroundColor: state.isSelected ? "#222" : state.isFocused ? "#333" : "black",
-    color: "white",
-    padding: "12px 16px",
-    cursor: "pointer",
-    borderLeft: state.isSelected
-      ? "5px solid #C8C8C8"
-      : state.isFocused
-      ? "5px solid #C8C8C8"
-      : "none",
-    borderBottom: "2.5px solid #C8C8C8",
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isFocused ? "#333333" : "#1f1f1f",
+    color: "#ffffff",
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: "#ffffff",
+  }),
+  multiValue: (provided) => ({
+    backgroundColor: "#333333",
+  borderRadius: "6px",
+  marginRight: "6px",
+  padding: "2px 6px",
+  minHeight: "22px",
+  display: "inline-flex",
+  alignItems: "center",
+  whiteSpace: "nowrap",
+  flexShrink: 1,                // 👈 allow shrinking instead of wrapping
+  maxWidth: "120px",            // 👈 cap width per chip
+  }),
+  multiValueLabel: (provided) => ({
+    ...provided,
+    color: "#ffffff",             // chip text color
+    fontWeight: "500",
+    
+  }),
+  multiValueRemove: (provided) => ({
+    ...provided,
+    color: "#ff4d4f",             // red “x” for remove
+    ":hover": {
+      backgroundColor: "#ff4d4f",
+      color: "#ffffff",
+    },
   }),
 };
 
-
+ 
+  
   const preferenceOptions = [
     { value: "Bachelors", label: "Bachelors" },
     { value: "Family", label: "Family" },
@@ -121,12 +141,12 @@ const customSelectStyles = {
   ];
 
   const ownerLocationOptions = [
-    { value: "Lives in same property", label: "Owner Lives in same property" },
+    { value: "Lives in same property", label: "Lives in same property" },
     {
-      value: "Lives in same city",
-      label: "Owner Lives in diffrent property",
+      value: "Lives in different property",
+      label: "Lives in different property",
     },
-    { value: "Lives in different ", label: "Owner Lives in different city" },
+    { value: "Lives in different city", label: "Lives in different city" },
   ];
 
   const appliancesOptions = [
@@ -242,7 +262,7 @@ const customSelectStyles = {
 
             <div>
               <label className="block mb-2 text-[#FFFFFF] text-base font-medium">
-                Owner's Locn<span className="text-red-600">*</span>
+                Owner's Location<span className="text-red-600">*</span>
               </label>
               <Select
                 required
@@ -417,56 +437,111 @@ const customSelectStyles = {
               />
             </div>
 
-            {/* Appliances */}
-            <div>
-              <label className="block mb-2 text-[#FFFFFF] text-base font-medium">
-                Appliances<span className="text-red-600">*</span>
-              </label>
-              <div className="mt-5 w-[100%]  text-[#000000] text-[16px] leading-[24px] font-normal">
-                <Select
-                  styles={customSelectStyles}
-                  placeholder={"Choose your Appliances"}
-                  value={
-                    formData.appliances && Array.isArray(formData.appliances)
-                      ? formData.appliances
-                          .map((item) =>
-                            appliancesOptions.find((opt) => opt.value === item)
-                          )
-                          .filter(Boolean)
-                      : []
-                  }
-                  options={appliancesOptions}
-                  onChange={handleOnChangeAppliances}
-                  isMulti={true}
-                />
-              </div>
-            </div>
+            
+          {/* Appliances */}
+<div>
+  <label className="block mb-2 text-[#FFFFFF] text-base font-medium">
+    Appliances
+  </label>
+  <div className="mt-5 flex items-center">
+    <button
+      className="text-white text-3xl p-2 z-10"
+      onClick={() =>
+        setApplianceIndex((prev) => Math.max(0, prev - 1)) // scroll left
+      }
+    >
+      &lt;
+    </button>
+    <div className="flex-1">
+      <Select
+        styles={customSelectStyles}
+        placeholder={"Choose your Appliances"}
+        value={
+          formData.appliances && Array.isArray(formData.appliances)
+            ? formData.appliances
+                .map((item) => appliancesOptions.find((opt) => opt.value === item))
+                .filter(Boolean)
+            : []
+        }
+        options={appliancesOptions}
+        onChange={handleAppliancesChangeCarousel}
+        isMulti
+        components={{ MultiValueContainer: CustomMultiValueContainer }}
+        startIndex={applianceIndex} // 👈 window start
+        onRemove={(option) => {
+          const newVals = formData.appliances.filter((a) => a !== option.value);
+          setFormData({ ...formData, appliances: newVals });
+        }}
+      />
+    </div>
+    <button
+      className="text-white text-3xl p-2 z-10"
+      onClick={() =>
+        setApplianceIndex((prev) =>
+          Math.min(
+            Math.max(0, (formData.appliances?.length || 0) - MAX_VISIBLE),
+            prev + 1
+          )
+        ) // scroll right
+      }
+    >
+      &gt;
+    </button>
+  </div>
+</div>
 
-            {/* Amenities */}
-            <div>
-              <label className="block mb-2 text-[#FFFFFF] text-base font-medium">
-                Amenities
-              </label>
-              <div className="mt-5 w-[100%] text-[#000000] text-[16px] leading-[24px] font-normal">
-                <Select
-                  styles={customSelectStyles}
-                  className="text-black"
-                  placeholder={"Choose your Amenities"}
-                  value={
-                    formData.amenities && Array.isArray(formData.amenities)
-                      ? formData.amenities
-                          .map((item) =>
-                            amenitiesOptions.find((opt) => opt.value === item)
-                          )
-                          .filter(Boolean)
-                      : []
-                  }
-                  options={amenitiesOptions}
-                  onChange={handleOnChangeAmenities}
-                  isMulti={true}
-                />
-              </div>
-            </div>
+{/* Amenities */}
+<div>
+  <label className="block mb-2 text-[#FFFFFF] text-base font-medium">
+    Amenities
+  </label>
+  <div className="mt-5 flex items-center">
+    <button
+      className="text-white text-3xl p-2 z-10"
+      onClick={() =>
+        setAmenitiesIndex((prev) => Math.max(0, prev - 1))
+      }
+    >
+      &lt;
+    </button>
+    <div className="flex-1">
+      <Select
+        styles={customSelectStyles}
+        placeholder={"Choose your Amenities"}
+        value={
+          formData.amenities && Array.isArray(formData.amenities)
+            ? formData.amenities
+                .map((item) => amenitiesOptions.find((opt) => opt.value === item))
+                .filter(Boolean)
+            : []
+        }
+        options={amenitiesOptions}
+        onChange={handleAmenitiesChangeCarousel}
+        isMulti
+        components={{ MultiValueContainer: CustomMultiValueContainer }}
+        startIndex={amenitiesIndex}
+        onRemove={(option) => {
+          const newVals = formData.amenities.filter((a) => a !== option.value);
+          setFormData({ ...formData, amenities: newVals });
+        }}
+      />
+    </div>
+    <button
+      className="text-white text-3xl p-2 z-10"
+      onClick={() =>
+        setAmenitiesIndex((prev) =>
+          Math.min(
+            Math.max(0, (formData.amenities?.length || 0) - MAX_VISIBLE),
+            prev + 1
+          )
+        )
+      }
+    >
+      &gt;
+    </button>
+  </div>
+</div>
+
           </div>
 
           {/* About Property */}
@@ -692,57 +767,111 @@ const customSelectStyles = {
                 options={washroomOptions}
               />
             </div>
+ {/* Appliances */}
+{/* Appliances */}
+<div>
+  <label className="block mb-2 text-[#FFFFFF] text-base font-medium">
+    Appliances
+  </label>
+  <div className="mt-5 flex items-center">
+    <button
+      className="text-white text-3xl p-2 z-10"
+      onClick={() =>
+        setApplianceIndex((prev) => Math.max(0, prev - 1)) // scroll left
+      }
+    >
+      &lt;
+    </button>
+    <div className="flex-1">
+      <Select
+        styles={customSelectStyles}
+        placeholder={"Choose your Appliances"}
+        value={
+          formData.appliances && Array.isArray(formData.appliances)
+            ? formData.appliances
+                .map((item) => appliancesOptions.find((opt) => opt.value === item))
+                .filter(Boolean)
+            : []
+        }
+        options={appliancesOptions}
+        onChange={handleAppliancesChangeCarousel}
+        isMulti
+        components={{ MultiValueContainer: CustomMultiValueContainer }}
+        startIndex={applianceIndex} // 👈 window start
+        onRemove={(option) => {
+          const newVals = formData.appliances.filter((a) => a !== option.value);
+          setFormData({ ...formData, appliances: newVals });
+        }}
+      />
+    </div>
+    <button
+      className="text-white text-3xl p-2 z-10"
+      onClick={() =>
+        setApplianceIndex((prev) =>
+          Math.min(
+            Math.max(0, (formData.appliances?.length || 0) - MAX_VISIBLE),
+            prev + 1
+          )
+        ) // scroll right
+      }
+    >
+      &gt;
+    </button>
+  </div>
+</div>
 
-            {/* Appliances */}
-            <div>
-              <label className="block mb-2 text-[#FFFFFF] text-base font-medium">
-                Appliances
-              </label>
-              <div className="mt-5 w-[100%]  text-[#000000] text-[16px] leading-[24px] font-normal">
-                <Select
-                  styles={customSelectStyles}
-                  placeholder={"Choose your Appliances"}
-                  value={
-                    formData.appliances && Array.isArray(formData.appliances)
-                      ? formData.appliances
-                          .map((item) =>
-                            appliancesOptions.find((opt) => opt.value === item)
-                          )
-                          .filter(Boolean)
-                      : []
-                  }
-                  options={appliancesOptions}
-                  onChange={handleOnChangeAppliances}
-                  isMulti={true}
-                />
-              </div>
-            </div>
+{/* Amenities */}
+<div>
+  <label className="block mb-2 text-[#FFFFFF] text-base font-medium">
+    Amenities
+  </label>
+  <div className="mt-5 flex items-center">
+    <button
+      className="text-white text-3xl p-2 z-10"
+      onClick={() =>
+        setAmenitiesIndex((prev) => Math.max(0, prev - 1))
+      }
+    >
+      &lt;
+    </button>
+    <div className="flex-1">
+      <Select
+        styles={customSelectStyles}
+        placeholder={"Choose your Amenities"}
+        value={
+          formData.amenities && Array.isArray(formData.amenities)
+            ? formData.amenities
+                .map((item) => amenitiesOptions.find((opt) => opt.value === item))
+                .filter(Boolean)
+            : []
+        }
+        options={amenitiesOptions}
+        onChange={handleAmenitiesChangeCarousel}
+        isMulti
+        components={{ MultiValueContainer: CustomMultiValueContainer }}
+        startIndex={amenitiesIndex}
+        onRemove={(option) => {
+          const newVals = formData.amenities.filter((a) => a !== option.value);
+          setFormData({ ...formData, amenities: newVals });
+        }}
+      />
+    </div>
+    <button
+      className="text-white text-3xl p-2 z-10"
+      onClick={() =>
+        setAmenitiesIndex((prev) =>
+          Math.min(
+            Math.max(0, (formData.amenities?.length || 0) - MAX_VISIBLE),
+            prev + 1
+          )
+        )
+      }
+    >
+      &gt;
+    </button>
+  </div>
+</div>
 
-            {/* Amenities */}
-            <div>
-              <label className="block mb-2 text-[#FFFFFF] text-base font-medium">
-                Amenities
-              </label>
-              <div className="mt-5 w-[100%] text-[#000000] text-[16px] leading-[24px] font-normal">
-                <Select
-                  styles={customSelectStyles}
-                  className="text-black"
-                  placeholder={"Choose your Amenities"}
-                  value={
-                    formData.amenities && Array.isArray(formData.amenities)
-                      ? formData.amenities
-                          .map((item) =>
-                            amenitiesOptions.find((opt) => opt.value === item)
-                          )
-                          .filter(Boolean)
-                      : []
-                  }
-                  options={amenitiesOptions}
-                  onChange={handleOnChangeAmenities}
-                  isMulti={true}
-                />
-              </div>
-            </div>
           </div>
 
           {/* About Property */}

@@ -39,34 +39,6 @@ const Listing = () => {
     Kota: { lat: 25.2138, lng: 75.8648 },
   };
 
-  const pincodeMapping = {
-  Lucknow: {
-    Kamta: "226028",
-    Nishatganj: "226006",
-    Hazratganj: "226001",
-    "Gomti Nagar": "226010",
-    "Sushant Golf City": "226030",
-    Khargapur: "226016",
-    Chinhat: "226028",
-    "Indira Nagar": "226016",
-    Aliganj: "226024",
-    Rajajipuram: "226017",
-  },
-  Ayodhya: {
-    Bakhtiarpur: "224001",
-    Bhadohi: "224002",
-  },
-  Vellore: {
-    "Vellore Cantonment": "632001",
-    "Gandhi Nagar": "632006",
-  },
-  Kota: {
-    "Kota Cantonment": "324001",
-    "Kota East": "324002",
-  },
-};
-
-
   const localityCoordinates = {
     Lucknow: {
       Kamta: { lat: 26.8868, lng: 81.0586 },
@@ -151,8 +123,6 @@ const Listing = () => {
   const params = new URLSearchParams(queryString);
   const residential = params.get("residential"); // Example: Get the value of 'param1'
   const commercial = params.get("commercial"); // Example: Get the value of 'param1'
-  const [pinCode, setPinCode] = useState("");//state for pincode mapping
-
 
   const [filters, setFilters] = useState({
     bhk: [],
@@ -252,19 +222,6 @@ const Listing = () => {
       console.warn(`No borders for ${selectedLocality} in ${city}`);
     }
   }, [selectedLocality, city]);
-
-  //trigger when city or locality changes
-  useEffect(() => {
-  if (city && selectedLocality) {
-    const cityData = pincodeMapping[city];
-    if (cityData && cityData[selectedLocality]) {
-      setPinCode(cityData[selectedLocality]);
-    } else {
-      setPinCode(""); // Reset if not found
-    }
-  }
-}, [city, selectedLocality]);
-
 
   // Add useEffect to handle clicks outside the panel
   useEffect(() => {
@@ -933,26 +890,29 @@ const Listing = () => {
   const handleSearchSelection = (value, type) => {
     const queryParams = new URLSearchParams(location.search);
 
-    // To trigger immediate search
-    fetchAndFilterProperties(
-      city,
-      type === "area" ? currentAreas : selectedArea,
-      type === "locality" ? value : selectedLocality
-    );
     if (type === "locality") {
+      // Update locality selection
       handleLocalitySelect(value);
       queryParams.set("locality", value);
+
+      // Trigger search with updated locality
+      fetchAndFilterProperties(city, selectedArea, value);
     } else {
-      addLocality(value);
-      const currentAreas = selectedArea.includes(value)
+      // Compute updated areas before using it
+      const newAreas = selectedArea.includes(value)
         ? selectedArea.filter((area) => area !== value)
         : [...selectedArea, value];
 
-      if (currentAreas.length > 0) {
-        queryParams.set("area", currentAreas.join(","));
+      // Update state and query params for areas
+      setSelectedArea(newAreas);
+      if (newAreas.length > 0) {
+        queryParams.set("area", newAreas.join(","));
       } else {
         queryParams.delete("area");
       }
+
+      // Trigger search with updated areas
+      fetchAndFilterProperties(city, newAreas, selectedLocality);
     }
 
     setSearchQuery("");
@@ -1283,110 +1243,120 @@ const Listing = () => {
               </div>
             </div>
 
-            {/* filter and sort in mobiles */}
-            <div className="lg:hidden md:hidden flex flex-wrap justify-between w-[96%] mx-[2%] ">
-              <div
-                className="flex items-center gap-4 border-l pl-4 justify-center border-black shrink-0 cursor-pointer text-black bg-white rounded-lg py-2 "
-                onClick={handleMode}
-              >
-                <span className="text-sm md:text-lg whitespace-nowrap">
-                  {selectedSort}
-                </span>
-                <img
-                  src={drop}
-                  alt="Dropdown"
-                  className={`${
-                    mode ? "rotate-180" : "rotate-0"
-                  } cursor-pointer`}
-                />
-                <div className="relative text-sm lg:text-lg">
-                  <div
-                    className={`${
-                      mode ? "block" : "hidden"
-                    } z-50 absolute bg-white shadow-lg rounded-lg text-center w-40 py-3 top-[30px] lg:left-[-150px] left-[-85px] sm:top-[36px] sm:left-[-110px]`}
-                  >
-                    <p
-                      className="border-b-2 py-2 font-medium cursor-pointer hover:bg-gray-100"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSortClick("price-low-high", "Price Low to High");
-                      }}
-                    >
-                      Price: Low to High
-                    </p>
-                    <p
-                      className="border-b-2 py-2 font-medium cursor-pointer hover:bg-gray-100"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSortClick("price-high-low", "Price High to Low");
-                      }}
-                    >
-                      Price High to Low
-                    </p>
-                    {/* <p
-                      className="border-b-2 py-2 font-medium cursor-pointer hover:bg-gray-100"
-                      onClick={() => {
-                        handleSortClick("most-trending", "Most Trending");
-                      }}
-                    >
-                      Most Trending
-                    </p> */}
-                    <p
-                      className="py-2 font-medium cursor-pointer hover:bg-gray-100"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSortClick("date-uploaded", "Date Uploaded");
-                      }}
-                    >
-                      Date Uploaded
-                    </p>
-                  </div>
-                </div>
-              </div>
+       
+<div className="lg:hidden md:hidden flex flex-wrap justify-between w-[96%] mx-[2%] ">
+  <div
+    className="flex items-center gap-4 border-l pl-4 justify-center border-black shrink-0 cursor-pointer text-black bg-white rounded-lg py-2 "
+    onClick={handleMode}
+  >
+    <span className="text-sm md:text-lg whitespace-nowrap">
+      {selectedSort}
+    </span>
+    <img
+      src={drop}
+      alt="Dropdown"
+      className={`${
+        mode ? "rotate-180" : "rotate-0"
+      } cursor-pointer`}
+    />
+    <div className="relative text-sm lg:text-lg">
+      <div
+        className={`${
+          mode ? "block" : "hidden"
+        } z-50 absolute bg-white shadow-lg rounded-lg text-center w-40 py-3 top-[30px] lg:left-[-150px] left-[-85px] sm:top-[36px] sm:left-[-110px]`}
+      >
+        <p
+          className="border-b-2 py-2 font-medium cursor-pointer hover:bg-gray-100"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleSortClick("price-low-high", "Price Low to High");
+          }}
+        >
+          Price: Low to High
+        </p>
+        <p
+          className="border-b-2 py-2 font-medium cursor-pointer hover:bg-gray-100"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleSortClick("price-high-low", "Price High to Low");
+          }}
+        >
+          Price High to Low
+        </p>
+        {/* <p
+          className="border-b-2 py-2 font-medium cursor-pointer hover:bg-gray-100"
+          onClick={() => {
+            handleSortClick("most-trending", "Most Trending");
+          }}
+        >
+          Most Trending
+        </p> */}
+        <p
+          className="py-2 font-medium cursor-pointer hover:bg-gray-100"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleSortClick("date-uploaded", "Date Uploaded");
+          }}
+        >
+          Date Uploaded
+        </p>
+      </div>
+    </div>
+  </div>
 
-              <div
-                className="flex items-center gap-2 border-l py-3  px-3 border-black shrink-0 cursor-pointer text-black bg-white rounded-lg"
-                onClick={handleOpen}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-sm md:text-lg whitespace-nowrap">
-                    Filters
-                  </span>
-                  <img src={drop} alt="Dropdown" className="cursor-pointer" />
-                </div>
-              </div>
-              {isOpen && (
-                <div
-                  onClick={() => SetIsOpen(false)}
-                  className={`fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 ${
-                    isOpen ? "opacity-100 visible" : "opacity-0 invisible"
-                  }`}
-                >
-                  <div
-                    onClick={(e) => e.stopPropagation()}
-                    className={`absolute top-0 right-0 w-full h-full bg-white text-black shadow-lg transition-transform duration-300 ease-in-out transform ${
-                      isOpen ? "translate-x-0" : "translate-x-full"
-                    } sm:relative sm:translate-x-0 sm:shadow-none`}
-                  >
-                    <div className="p-4 overflow-y-auto max-h-screen">
-                      <Filters
-                        SetIsOpen={SetIsOpen}
-                        setProperties={setProperties}
-                        city={city}
-                        updateFilterCount={updateFilterCount}
-                        fetchAndFilterProperties={fetchAndFilterProperties}
-                        filterCount={filterCount}
-                        filters={filters}
-                        setFilters={setFilters}
-                        resetFilters={resetFilters}
-                        selectedArea={selectedArea}
-                        selectedLocality={selectedLocality}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+  <div
+    className="flex items-center gap-2 border-l py-3  px-3 border-black shrink-0 cursor-pointer text-black bg-white rounded-lg"
+    onClick={handleOpen}
+  >
+    <div className="flex items-center gap-2">
+      <span className="text-sm md:text-lg whitespace-nowrap">
+        Filters
+      </span>
+      <img src={drop} alt="Dropdown" className="cursor-pointer" />
+    </div>
+  </div>
+  {isOpen && (
+    <div
+      onClick={() => SetIsOpen(false)}
+      className={`fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 ${
+        isOpen ? "opacity-100 visible" : "opacity-0 invisible"
+      }`}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className={`absolute top-0 right-0 w-full h-full  text-black shadow-lg transition-transform duration-300 ease-in-out transform ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        } sm:relative sm:translate-x-0 sm:shadow-none`}
+      >
+        <div className="p-4 overflow-y-auto max-h-screen ">
+          {/* Add the "X" button here */}
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Filters</h2>
+            <button
+              className="text-2xl text-black hover:text-gray-600"
+              onClick={() => SetIsOpen(false)}
+            >
+              &times;
+            </button>
+          </div>
+          <Filters
+            SetIsOpen={SetIsOpen}
+            setProperties={setProperties}
+            city={city}
+            updateFilterCount={updateFilterCount}
+            fetchAndFilterProperties={fetchAndFilterProperties}
+            filterCount={filterCount}
+            filters={filters}
+            setFilters={setFilters}
+            resetFilters={resetFilters}
+            selectedArea={selectedArea}
+            selectedLocality={selectedLocality}
+          />
+        </div>
+      </div>
+    </div>
+  )}
+</div>
 
             <div className="sm:col-span-4 md:col-span-4 flex w-fit xs:w-[50%]  items-center justify-center lg:justify-between -mt-[76px] ml-[98px] xs:[96px] lg:ml-4 lg:mt-0">
               {compareProperty.length >= 1 && (

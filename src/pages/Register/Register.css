@@ -1,0 +1,49 @@
+body {
+  background-color: #000000;
+
+}
+
+/* Register Form Container */
+.register_form_container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 400px; /* Adjusted width */
+  min-height: 740px;
+  background-color: black;
+  border-radius: 40px 5px;
+  padding: 30px 30px 0 30px;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+@media (max-width: 600px) {
+  .register_form_container {
+    max-width: 300px;
+  }
+}
+
+/* Inner Container */
+.register_form_container > div {
+  width: 97.2%;
+  padding: 40px 30px 0 30px;
+  border: 4px solid transparent;
+  border-radius: 40px 5px;
+}
+
+
+/* Transition Animition css*/
+.register_form_container::before {
+  content: '';
+  @apply absolute -inset-[50%] bg-[conic-gradient(transparent,_transparent,_transparent,_#3cbdb1)] animate-rotate_border;
+  z-index: 0;
+}
+
+.register_form_container::after {
+  content: '';
+  @apply absolute -inset-[50%] bg-[conic-gradient(transparent,_transparent,_transparent,_#c8a217)] animate-rotate_border;
+  animation-delay: -3s;
+  z-index: 0;
+}

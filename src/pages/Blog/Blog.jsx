@@ -32,6 +32,7 @@ const Blog = () => {
           }
         );
         const allBlogs = response.data;
+        console.log(allBlogs);
         // setBlogs((prevBlogs) => [...prevBlogs, ...allBlogs.data]); // Append new blogs to the existing list
         setBlogs((prevBlogs) => {
           const existingSlugs = new Set(prevBlogs.map((blog) => blog.slug));

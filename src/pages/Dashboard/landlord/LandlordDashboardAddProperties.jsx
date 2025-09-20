@@ -1,9 +1,8 @@
-import { useState } from "react";
-import { toast } from "react-hot-toast";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
 import { useSelector } from "react-redux";
-import { useEffect } from "react";
+import { toast } from "react-hot-toast";
 
 import Form from "./NewForm/components/Details";
 import AdditionalInfo from "./NewForm/components/AdditionalInfo";
@@ -11,7 +10,7 @@ import Coupon from "./NewForm/components/Coupon";
 import ImageUpload from "./NewForm/components/ImageUpload";
 
 import { API } from "../../../config/axios";
-import { max } from "date-fns";
+
 
 export default function LandlordDashboardAddProperties() {
   // For changing and showing page number

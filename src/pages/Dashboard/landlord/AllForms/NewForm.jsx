@@ -131,6 +131,7 @@ const Form = ({ formData, setFormData }) => {
   const mapRef = useRef(null);
   const [map, setMap] = useState(null);
   const [marker, setMarker] = useState(null);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [areaSearch, setAreaSearch] = useState("");

@@ -194,6 +194,8 @@ const Cards = ({ properties, favouriteList, setFavouriteList }) => {
         {norm.map((property) => (
           <li
             key={property._id}
+              id={`property-${property._id}`}   // 👈 added
+
             className="property-card rounded-[8px] overflow-hidden shadow-lg border border-gray-200 bg-white lg:p-4 p-2.5 flex flex-col h-full" // Added flex and h-full
           >
             <figure className="card-banner relative aspect-w-2 h-[180px] lg:h-[260px] overflow-hidden w-full">
@@ -469,12 +471,17 @@ const Cards = ({ properties, favouriteList, setFavouriteList }) => {
                 </div>
               </div>
               <div className="card-footer-actions">
-                <button
-                  onClick={() => navigate(`/property/${property.slug}`)}
-                  className="card-footer-actions-btn w-[95px] h-[24px] lg:w-[120px] lg:h-[28px] text-sm"
-                >
-                  SHOW MORE
-                </button>
+               <button
+  onClick={() => {
+    sessionStorage.setItem("scrollPosition", window.scrollY);
+    sessionStorage.setItem("lastViewedProperty", property._id);
+    navigate(`/property/${property.slug}`);
+  }}
+  className="card-footer-actions-btn w-[95px] h-[24px] lg:w-[120px] lg:h-[28px] text-sm"
+>
+  SHOW MORE
+</button>
+
               </div>
             </div>
           </li>

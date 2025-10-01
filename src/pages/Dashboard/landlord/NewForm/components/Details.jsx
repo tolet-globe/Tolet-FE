@@ -9,6 +9,8 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
   const cityOptions = ["Lucknow", "Ayodhya", "Vellore", "Kota"];
   const spaceTypeOptions = ["Residential", "Commercial"];
   const allOptions = ["House", "Flat", "PG", "Office", "Shop", "Warehouse"];
+    console.log("Props received in Details component:", { setIsMarkerMoved });
+
 
   const cityLocalityData = {
     Lucknow: {
@@ -115,6 +117,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
   const mapRef = useRef(null);
   const [map, setMap] = useState(null);
   const [marker, setMarker] = useState(null);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [areaSearch, setAreaSearch] = useState("");
@@ -219,7 +222,6 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
       marker.setPosition(position);
     }
 
-    setIsMarkerMoved(false);
     setFormData((prev) => ({
       ...prev,
       latitude: position.lat,

@@ -839,6 +839,35 @@ const Listing = () => {
 
     return sortedProperties;
   };
+  useEffect(() => {
+  console.log("Properties loaded:", properties.length);
+
+  if (properties.length > 0) {
+    const savedPosition = sessionStorage.getItem("scrollPosition");
+    const lastViewed = sessionStorage.getItem("lastViewedProperty");
+
+    console.log("Saved scroll position:", savedPosition);
+    console.log("Last viewed property ID:", lastViewed);
+
+    if (lastViewed) {
+      const el = document.getElementById(`property-${lastViewed}`);
+      if (el) {
+        console.log(`Scrolling to last viewed property with ID: ${lastViewed}`);
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        console.log(
+          `Element for last viewed property ID ${lastViewed} not found in DOM`
+        );
+      }
+    } else if (savedPosition) {
+      console.log(`Scrolling to saved position: ${savedPosition}`);
+      window.scrollTo(0, parseInt(savedPosition, 10));
+    } else {
+      console.log("No scroll data found, not scrolling.");
+    }
+  }
+}, [properties]);
+
 
   const handleSortClick = (sortType, label) => {
     const queryParams = new URLSearchParams(location.search);
@@ -1417,24 +1446,24 @@ const Listing = () => {
           </Map>
         </div>
 
-        <div className="pt-3">
-          {properties.length === 0 ? (
-            <p className="text-center text-lg font-semibold mt-10">
-              No properties found
-            </p>
-          ) : (
-            <Cards
-              properties={properties.map((property) => ({
-                ...property,
-                isOwnerOrAdmin:
-                  property.userId === currentUserId ||
-                  currentUserRole === "admin",
-              }))}
-              favouriteList={favouriteList}
-              setFavouriteList={setFavouriteList}
-            />
-          )}
-        </div>
+       <div className="pt-3">
+  {properties.length === 0 ? (
+    <p className="text-center text-lg font-semibold mt-10">
+      No properties found
+    </p>
+  ) : (
+    <Cards
+      properties={properties.map((property) => ({
+        ...property,
+        isOwnerOrAdmin:
+          property.userId === currentUserId ||
+          currentUserRole === "admin",
+      }))}
+      favouriteList={favouriteList}
+      setFavouriteList={setFavouriteList}
+    />
+  )}
+</div>
 
         {!isOpen && loading && (
           <div className="flex justify-center my-4">

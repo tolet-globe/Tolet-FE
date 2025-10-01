@@ -38,6 +38,7 @@ const AdditionalInfo = ({ formData, setFormData }) => {
   const [applianceIndex, setApplianceIndex] = useState(0);
   const [amenitiesIndex, setAmenitiesIndex] = useState(0);
   
+  
 // ✅ Use unique names
 const handleAppliancesChangeCarousel = (selected) => {
   setFormData({ ...formData, appliances: selected.map((s) => s.value) });

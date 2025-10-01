@@ -56,6 +56,7 @@ export default function LandlordDashboardEditProperties() {
     longitude: null,
     subscriptionPlan: null,
   });
+  const [isMarkerMoved, setIsMarkerMoved] = useState(true); // Initialize as true for edit mode
 
   const navigate = useNavigate();
   const { id } = useParams(); // Access the property ID from the route
@@ -230,7 +231,12 @@ export default function LandlordDashboardEditProperties() {
       >
         {/* Form Body */}
         <div>
-          <Form formData={formData} setFormData={setFormData} />
+          <Form 
+            formData={formData} 
+            setFormData={setFormData}
+            setIsMarkerMoved={setIsMarkerMoved}
+            isMarkerMoved={isMarkerMoved}
+          />
           <AdditionalInfo formData={formData} setFormData={setFormData} />
           {/* <Coupon /> */}
           <ImageUpload formData={formData} setFormData={setFormData} />

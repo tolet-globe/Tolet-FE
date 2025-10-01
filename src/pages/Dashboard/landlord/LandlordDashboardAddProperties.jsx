@@ -17,10 +17,9 @@ export default function LandlordDashboardAddProperties() {
   // const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [couponUsage, setCouponUsage] = useState(false);
-      const [isMarkerMoved, setIsMarkerMoved] = useState(false);
+// After: Check if formData has an ID when the component first loads.
 
-
-  const navigate = useNavigate();
+const navigate = useNavigate();
 
   // For storing formData
   const [formData, setFormData] = useState({
@@ -67,7 +66,8 @@ export default function LandlordDashboardAddProperties() {
     couponStatus: false, // Kept couponStatus
     ownerLocation: "",
   });
-
+  const [isMarkerMoved, setIsMarkerMoved] = useState(!!formData.id);
+  
   const userInfo = useSelector((state) => state.auth.userData);
   console.log("userInf0o", userInfo);
 
@@ -233,6 +233,8 @@ export default function LandlordDashboardAddProperties() {
       </div>
     );
   }
+  console.log("PARENT CHECK:", typeof setIsMarkerMoved);
+
 
   return (
     <>
@@ -252,6 +254,9 @@ export default function LandlordDashboardAddProperties() {
             {/* Form-Body */}
             <Form formData={formData} setFormData={setFormData} 
                           setIsMarkerMoved={setIsMarkerMoved}
+                            isMarkerMoved={isMarkerMoved}
+
+
 
             
             

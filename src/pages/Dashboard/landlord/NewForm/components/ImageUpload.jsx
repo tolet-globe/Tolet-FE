@@ -6,11 +6,12 @@ const handleImageSubmit = (e, index) => {
   const existingImages = formData.images || [];
   const newFiles = Array.from(e.target.files);
 
-  if (existingImages.length + newFiles.length > 7) {
-    alert("You can upload a maximum of 7 images.");
-    return;
-  }
 
+    if (existingImages.length + newFiles.length > 15) {
+      alert("You can upload a maximum of 15 images.");
+      return;
+
+  }
   // Insert at specific index or append
   let updatedImages = [...existingImages];
   if (typeof index === "number") {
@@ -18,6 +19,7 @@ const handleImageSubmit = (e, index) => {
     updatedImages[index] = newFiles[0]; 
     if (newFiles.length > 1) {
       updatedImages = [...updatedImages, ...newFiles.slice(1)];
+
     }
   } else {
     updatedImages = [...updatedImages, ...newFiles];
@@ -104,7 +106,7 @@ const handleImageSubmit = (e, index) => {
 
             {/* Right - Grid of Remaining Images */}
             <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-4 max-w-[400px] flex-shrink-0">
-              {Array.from({ length: 6 }, (_, idx) => (
+              {Array.from({ length: 14 }, (_, idx) => (
                 <div key={idx} className="relative group">
                   {formData.images?.[idx + 1] ? (
                     <img
@@ -146,7 +148,7 @@ const handleImageSubmit = (e, index) => {
           </div>
 
           <p className="mt-4 text-sm text-gray-400">
-            Uploaded {formData.images?.length || 0}/7 images
+            Uploaded {formData.images?.length || 0}/15 images
           </p>
         </div>
       </div>

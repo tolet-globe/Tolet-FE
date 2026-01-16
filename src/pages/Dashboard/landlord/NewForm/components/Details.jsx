@@ -120,7 +120,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
   const [areaSearch, setAreaSearch] = useState("");
   const [filteredAreas, setFilteredAreas] = useState([]);
   const [showAreaDropdown, setShowAreaDropdown] = useState(false);
-    
+
 
 
   useEffect(() => {
@@ -164,6 +164,23 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
     });
     setMap(newMap);
 
+    newMap.addListener("click", (event) => {
+      const pos = event.latLng;
+      if (pos) {
+        const lat = typeof pos.lat === "function" ? pos.lat() : pos.lat;
+        const lng = typeof pos.lng === "function" ? pos.lng() : pos.lng;
+
+        if (lat && lng) {
+          setFormData((prev) => ({
+            ...prev,
+            latitude: lat,
+            longitude: lng,
+          }));
+          setIsMarkerMoved(true);
+        }
+      }
+    });
+
     try {
       const AdvancedMarker = window.google.maps.marker.AdvancedMarkerElement;
       const newMarker = new AdvancedMarker({
@@ -172,15 +189,21 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
         gmpDraggable: true,
       });
 
-      newMarker.addListener("dragend", () => {
+      newMarker.addEventListener("dragend", () => {
         const pos = newMarker.position;
-        if (pos?.lat && pos?.lng) {
-          setFormData((prev) => ({
-            ...prev,
-            latitude: pos.lat,
-            longitude: pos.lng,
-          }));
-          setIsMarkerMoved(true);
+
+        if (pos) {
+          const lat = typeof pos.lat === "function" ? pos.lat() : pos.lat;
+          const lng = typeof pos.lng === "function" ? pos.lng() : pos.lng;
+
+          if (lat && lng) {
+            setFormData((prev) => ({
+              ...prev,
+              latitude: lat,
+              longitude: lng,
+            }));
+            setIsMarkerMoved(true);
+          }
         }
       });
       setMarker(newMarker);
@@ -219,16 +242,15 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
       marker.setPosition(position);
     }
 
-    setIsMarkerMoved(false);
-    setFormData((prev) => ({
-      ...prev,
-      latitude: position.lat,
-      longitude: position.lng,
-    }));
+    // setIsMarkerMoved(false); // Removed to decouple from locality
+    // setFormData((prev) => ({
+    //   ...prev,
+    //   latitude: position.lat,
+    //   longitude: position.lng,
+    // }));
+  }, [formData.city, formData.locality, map, marker, setFormData]); // Removed setIsMarkerMoved dependency
 
-  }, [formData.city, formData.locality, map, marker, setIsMarkerMoved, setFormData]);
 
-  
 
   const handleCityChange = (selectedOption) => {
     const selectedCity = selectedOption.value;
@@ -255,7 +277,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
       return;
     }
 
-     
+
 
 
     if (!selectedLocality) {
@@ -278,19 +300,6 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
         latitude: localityPosition?.lat,
         longitude: localityPosition?.lng,
       }));
-
-      // Directly call toast here after state update
-      // Encapsulate in a setTimeout to ensure it runs after any potential microtasks/rendering
-      setTimeout(() => {
-        toast.info("Remember to move the map marker to the precise location!", {
-          position: "top-center",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-      }, 0);
     }
   };
 
@@ -353,16 +362,16 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
       backgroundColor: state.isSelected
         ? "black"
         : state.isFocused
-        ? "#2D2D2D"
-        : "black",
+          ? "#2D2D2D"
+          : "black",
       color: "white",
       padding: "12px 16px",
       cursor: "pointer",
       borderLeft: state.isSelected
         ? "5px solid #C8C8C8"
         : state.isFocused
-        ? "5px solid #C8C8C8"
-        : "none",
+          ? "5px solid #C8C8C8"
+          : "none",
       borderBottom: "2.5px solid #C8C8C8",
     }),
   };
@@ -541,9 +550,9 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
             options={
               formData.city
                 ? cityLocalityData[formData.city].localities.map((loc) => ({
-                    value: loc,
-                    label: loc,
-                  }))
+                  value: loc,
+                  label: loc,
+                }))
                 : []
             }
             styles={customSelectStyles}
@@ -649,7 +658,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
         </div>
 
         <div>
-          <label className="block mb-2 text-[#FFFFFF] text-base font-medium">
+          <label className="block mb-2 text- text-base font-medium">
             Property<span className="text-red-600">*</span>
           </label>
           <Select

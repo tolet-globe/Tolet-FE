@@ -17,9 +17,9 @@ export default function LandlordDashboardAddProperties() {
   // const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [couponUsage, setCouponUsage] = useState(false);
-// After: Check if formData has an ID when the component first loads.
+  // After: Check if formData has an ID when the component first loads.
 
-const navigate = useNavigate();
+  const navigate = useNavigate();
 
   // For storing formData
   const [formData, setFormData] = useState({
@@ -67,18 +67,18 @@ const navigate = useNavigate();
     ownerLocation: "",
   });
   const [isMarkerMoved, setIsMarkerMoved] = useState(!!formData.id);
-  
+
   const userInfo = useSelector((state) => state.auth.userData);
   console.log("userInf0o", userInfo);
 
   // Submitting form Data
   const submitForm = async (formData) => {
     setLoading(true);
-    if (!isMarkerMoved) {
-      toast.error("Please move the map marker to the correct location before submitting.");
-      setLoading(false);
-      return;
-    }
+    // if (!isMarkerMoved) {
+    //   toast.error("Please move the map marker to the correct location before submitting.");
+    //   setLoading(false);
+    //   return;
+    // }
 
     const updatedFormData = {
       ...formData,
@@ -252,21 +252,21 @@ const navigate = useNavigate();
         >
           <div>
             {/* Form-Body */}
-            <Form formData={formData} setFormData={setFormData} 
-                          setIsMarkerMoved={setIsMarkerMoved}
-                            isMarkerMoved={isMarkerMoved}
+            <Form formData={formData} setFormData={setFormData}
+              setIsMarkerMoved={setIsMarkerMoved}
+              isMarkerMoved={isMarkerMoved}
 
 
 
-            
-            
+
+
             />
 
             <AdditionalInfo formData={formData} setFormData={setFormData} />
             <Coupon
               formData={formData}
               setFormData={setFormData}
-              
+
               couponUsage={couponUsage}
             />
             <ImageUpload formData={formData} setFormData={setFormData} />

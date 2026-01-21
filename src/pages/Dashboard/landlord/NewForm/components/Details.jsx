@@ -315,16 +315,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
     );
   };
 
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
 
-    if (!isMarkerMoved) {
-      toast.error("Please move the map marker to the correct location before submitting.");
-      return;
-    }
-
-    console.log("Form is valid. Submitting data:", formData);
-  };
 
   const customSelectStyles = {
     control: (base) => ({
@@ -377,7 +368,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
   };
 
   return (
-    <form onSubmit={handleFormSubmit}>
+    <>
       <div className="sm:my-5 mt-7 mb-8 flex flex-col gap-2 md:pr-0">
         <h1 className="ml-4 text-[#FFFFFF] text-xl md:text-[25px] leading-10 font-bold text-left whitespace-nowrap">
           Property Details
@@ -534,7 +525,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
         {/* Locality */}
         <div>
           <label className="block mb-2 text-[#FFFFFF] text-base font-medium">
-            Locality<span className="text-red-600">*</span>
+            Locality
           </label>
           <CreatableSelect
             isDisabled={!formData.city}
@@ -704,7 +695,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
           />
         </div>
       </div>
-    </form>
+    </>
   );
 };
 

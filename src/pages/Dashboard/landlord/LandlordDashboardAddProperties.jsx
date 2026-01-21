@@ -69,7 +69,7 @@ export default function LandlordDashboardAddProperties() {
   const [isMarkerMoved, setIsMarkerMoved] = useState(!!formData.id);
 
   const userInfo = useSelector((state) => state.auth.userData);
-  console.log("userInf0o", userInfo);
+  // console.log("userInf0o", userInfo);
 
   // Submitting form Data
   const submitForm = async (formData) => {
@@ -113,7 +113,6 @@ export default function LandlordDashboardAddProperties() {
       "ownersContactNumber",
       "address",
       "city",
-      "locality",
       "area",
       "spaceType",
       "propertyType",
@@ -152,7 +151,7 @@ export default function LandlordDashboardAddProperties() {
     });
 
     const token = localStorage.getItem("token");
-    console.log("Token: ", token);
+    // console.log("Token: ", token);
 
     if (!token) {
       console.error("No token found in localStorage");
@@ -233,7 +232,7 @@ export default function LandlordDashboardAddProperties() {
       </div>
     );
   }
-  console.log("PARENT CHECK:", typeof setIsMarkerMoved);
+  // console.log("PARENT CHECK:", typeof setIsMarkerMoved);
 
 
   return (

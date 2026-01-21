@@ -241,14 +241,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
     if (marker?.setPosition) {
       marker.setPosition(position);
     }
-
-    // setIsMarkerMoved(false); // Removed to decouple from locality
-    // setFormData((prev) => ({
-    //   ...prev,
-    //   latitude: position.lat,
-    //   longitude: position.lng,
-    // }));
-  }, [formData.city, formData.locality, map, marker, setFormData]); // Removed setIsMarkerMoved dependency
+  }, [formData.latitude, formData.longitude, formData.city, formData.locality, map, marker]);
 
 
 
@@ -275,12 +268,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
     const selectedCity = formData.city;
     if (!selectedCity) {
       return;
-    }
-
-
-
-
-    if (!selectedLocality) {
+    }    if (!selectedLocality) {
       setFormData((prev) => ({
         ...prev,
         locality: "",
@@ -289,17 +277,35 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
         longitude: cityCoordinates[selectedCity]?.lng,
       }));
     } else {
-      const localityIndex = cityLocalityData[selectedCity].localities.indexOf(selectedLocality);
-      const correspondingPincode = cityLocalityData[selectedCity].pincodes[localityIndex];
+      const localityIndex = cityLocalityData[selectedCity]?.localities.indexOf(selectedLocality);
+      const correspondingPincode = cityLocalityData[selectedCity]?.pincodes[localityIndex];
       const localityPosition = localityCoordinates[selectedCity]?.[selectedLocality];
 
       setFormData((prev) => ({
         ...prev,
         locality: selectedLocality,
         pincode: correspondingPincode,
-        latitude: localityPosition?.lat,
-        longitude: localityPosition?.lng,
+        ...(localityPosition?.lat && localityPosition?.lng
+          ? { latitude: localityPosition.lat, longitude: localityPosition.lng }
+          : {}),
       }));
+
+      // Geocoding fallback for missing coordinates
+      if (!localityPosition && selectedLocality && window.google?.maps?.Geocoder) {
+        const geocoder = new window.google.maps.Geocoder();
+        const address = `${selectedLocality}, ${selectedCity}`;
+        geocoder.geocode({ address }, (results, status) => {
+          if (status === "OK" && results[0]) {
+            const loc = results[0].geometry.location;
+            setFormData((prev) => ({
+              ...prev,
+              latitude: loc.lat(),
+              longitude: loc.lng(),
+            }));
+            setIsMarkerMoved(true);
+          }
+        });
+      }
     }
   };
 

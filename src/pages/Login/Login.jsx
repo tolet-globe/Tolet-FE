@@ -9,7 +9,7 @@ import { AiOutlineMail } from "react-icons/ai";
 import GoogleOAuthBar from "../Register/GoogleOAuth/GoogleOAuthBar";
 import "./Login.css";
 
-import { API } from "../../config/axios";
+import Service from "../../services/Service";
 
 const Login = ({ setUserInfo }) => {
   const [email, setEmail] = useState("");
@@ -25,7 +25,7 @@ const Login = ({ setUserInfo }) => {
     try {
       setLoggingIn(true);
 
-      const res = await API.post("/auth/login", {
+      const res = await Service.login({
         email,
         password,
       });
@@ -50,6 +50,7 @@ const Login = ({ setUserInfo }) => {
               firstName: data.user.firstName,
               lastName: data.user.lastName,
               email: data.user.email,
+              role: data.user.role,
               profilePicture: data.user.profilePicture,
               properties: [],
             },

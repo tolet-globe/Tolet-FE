@@ -12,7 +12,7 @@ import {
 import { AiOutlineMail } from "react-icons/ai";
 
 import "./Register.css";
-import { API } from "../../config/axios";
+import Service from "../../services/Service";
 import GoogleOAuthBar from "./GoogleOAuth/GoogleOAuthBar";
 
 const Register = () => {
@@ -85,7 +85,7 @@ const Register = () => {
     );
     try {
       const formattedPhone = phone.startsWith("+") ? phone : `+91${phone}`;
-      const res = await API.post("/auth/register", {
+      const res = await Service.register({
         firstName,
         lastName,
         email,
@@ -135,7 +135,7 @@ const Register = () => {
     const loadingToast = toast.loading("Verifying OTP...");
 
     try {
-      const res = await API.post("/auth/verify-otp", {
+      const res = await Service.verifyOtp({
         email,
         otp,
       });
@@ -161,10 +161,9 @@ const Register = () => {
 
   return (
     <div
-      className={`register_form_container relative flex items-center justify-center my-10 overflow-hidden ${
-        ""
+      className={`register_form_container relative flex items-center justify-center my-10 overflow-hidden ${""
         // role === "user" ? "h-[785px]" : "h-[700px]"
-      } w-[400px]  max-w-[400px] bg-black rounded-[50px_5px] mx-auto mt-16 mb-16 `}
+        } w-[400px]  max-w-[400px] bg-black rounded-[50px_5px] mx-auto mt-16 mb-16 `}
     >
       <div className="absolute inset-1 bg-black rounded-[50px_5px] pt-11 px-10 text-white z-10 border-4 border-transparent">
         {" "}

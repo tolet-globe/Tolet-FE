@@ -40,6 +40,7 @@ const GoogleOAuthBar = () => {
               firstName: data.user.firstName,
               lastName: data.user.lastName,
               email: data.user.email,
+              role: data.user.role,
               profilePicture: data.user.profilePicture,
               properties: [],
             },
@@ -60,7 +61,7 @@ const GoogleOAuthBar = () => {
         toast.dismiss(loadingToast);
         toast.error(
           res.data?.message ||
-            "Unexpected response from server. Please try again."
+          "Unexpected response from server. Please try again."
         );
       }
     } catch (error) {
@@ -72,7 +73,7 @@ const GoogleOAuthBar = () => {
       );
       toast.error(
         error.response?.data?.message ||
-          "Google login failed. Please try again."
+        "Google login failed. Please try again."
       );
     } finally {
       toast.dismiss(loadingToast);

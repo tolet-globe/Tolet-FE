@@ -1,6 +1,6 @@
 import { toast } from "react-toastify";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { FaHeart } from "react-icons/fa";
@@ -11,37 +11,40 @@ import { FaRegCopy } from "react-icons/fa6";
 import Popup from "reactjs-popup";
 
 import { API } from "../../../config/axios";
+import Service from "../../../services/Service";
 
 export default function AllProperties({ favouriteList = [] }) {
   const [myProperties, setMyProperties] = useState([]);
   const [localFavouriteList, setLocalFavouriteList] = useState(favouriteList);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [showOption, setShowOption] = useState(null);
   const navigate = useNavigate();
 
   const authState = useSelector((state) => state.auth);
 
-  const toggleOption = (id) => {
-    setShowOption((prev) => (prev === id ? null : id));
-  };
+
 
   useEffect(() => {
+    let isMounted = true;
     const fetchAllProperties = async () => {
       try {
         if (!authState?.userData?.id) {
           return;
         }
 
-        const response = await API.get(`property/all`);
-        const properties = response.data.data;
-        setMyProperties(properties);
-        setLocalFavouriteList(favouriteList.filter((id) => id !== properties));
+        const response = await Service.getAllProperties();
+        if (isMounted) {
+          const properties = response.data.data;
+          setMyProperties(properties);
+        }
       } catch (error) {
         console.log("Error fetching properties:", error);
       }
     };
     fetchAllProperties();
-  }, [authState]);
+    return () => { isMounted = false; };
+  }, [authState?.userData?.id]);
 
   useEffect(() => {
     const fetchFavouriteProperties = async () => {
@@ -76,7 +79,11 @@ export default function AllProperties({ favouriteList = [] }) {
     fetchFavouriteProperties();
   }, []);
 
-  const addToFavourites = async (propertyId) => {
+  const toggleOption = useCallback((id) => {
+    setShowOption((prev) => (prev === id ? null : id));
+  }, []);
+
+  const addToFavourites = useCallback(async (propertyId) => {
     try {
       if (!authState?.userData?.id) {
         toast.error("Login First!");
@@ -103,8 +110,7 @@ export default function AllProperties({ favouriteList = [] }) {
       if (response.status === 200) {
         setLocalFavouriteList((prevList) => {
           const updatedList = [...prevList, propertyId];
-
-          setTimeout(() => toast.success("Added to favorites!"), 100); // Delay toast
+          setTimeout(() => toast.success("Added to favorites!"), 100);
           return updatedList;
         });
       }
@@ -112,9 +118,9 @@ export default function AllProperties({ favouriteList = [] }) {
       console.log(error);
       toast.error("Failed to add to favorites");
     }
-  };
+  }, [authState?.userData?.id, navigate]);
 
-  const removeFromFavourites = async (propertyId) => {
+  const removeFromFavourites = useCallback(async (propertyId) => {
     try {
       if (!authState?.userData?.id) {
         toast.error("Login First!");
@@ -146,7 +152,7 @@ export default function AllProperties({ favouriteList = [] }) {
       console.log(error);
       toast.error("Failed to remove from favorites");
     }
-  };
+  }, [authState?.userData?.id, navigate]);
 
   // share icons functionality
   const shareProperty = async (slug) => {
@@ -178,23 +184,22 @@ export default function AllProperties({ favouriteList = [] }) {
     }
   };
   // Add Edit button and handleEdit function
-  const handleEdit = (property) => {
+  const handleEdit = useCallback((property) => {
     navigate(`/landlord-dashboard/edit-properties/${property._id}`);
-  };
+  }, [navigate]);
 
   // Handle Delete function
-  const handleDelete = async (propertyId) => {
+  const handleDelete = useCallback(async (propertyId) => {
     if (!window.confirm("Are you sure you want to delete this property?"))
       return;
 
     try {
-      const response = await API.delete(`property/${propertyId}`, {
+      const response = await Service.deleteProperty(propertyId, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
-      // With axios, response.data contains the parsed JSON
       if (response.status !== 200) {
         throw new Error(response.data?.message || "Failed to delete property");
       }
@@ -206,10 +211,10 @@ export default function AllProperties({ favouriteList = [] }) {
     } catch (error) {
       toast.error(`Error: ${error.message}`);
     }
-  };
+  }, []);
 
   // handle toggle availabilityStatus
-  const handleToggleAvailability = async (propertyId, currentStatus) => {
+  const handleToggleAvailability = useCallback(async (propertyId, currentStatus) => {
     try {
       const response = await API.patch(
         `property/update-property-availability-status/${propertyId}`,
@@ -226,7 +231,6 @@ export default function AllProperties({ favouriteList = [] }) {
         }
       );
 
-      // With axios, response.data contains the parsed JSON
       if (response.status !== 200) {
         throw new Error(response.data?.message || "Failed to update status");
       }
@@ -246,178 +250,190 @@ export default function AllProperties({ favouriteList = [] }) {
     } catch (error) {
       toast.error(`Error: ${error.message}`);
     }
-  };
+  }, [authState?.userData?.id]);
 
-  const cards = myProperties.map((property) => (
-    <div
-      key={property._id}
-      className=" bg-black p-4 rounded-md hover:cursor-pointer relative"
-    >
-      <div className="relative">
-        <img
-          src={property.images[0]}
-          alt="Property"
-          className="relative h-[200px] w-full object-cover rounded-md mb-4"
-          onClick={() => navigate(`/property/${property.slug}`)}
-        />
-        <div
-          onClick={() =>
-            handleToggleAvailability(property._id, property.availabilityStatus)
-          }
-          className="absolute top-4 left-4 text-white/75 lg:text-white text-xs lg:text-base uppercase px-1 lg:px-3 py-1 rounded-md"
-          style={{
-            backgroundColor:
-              property.availabilityStatus === "Available"
-                ? "#236b62"
-                : "#c71221",
-            textTransform: "capitalize",
-          }}
-        >
-          {property.availabilityStatus}
-        </div>
-      </div>
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">
-          {property?.firstName} {property?.lastName}
-        </h3>
-        <div className="icon-box flex items-center justify-center">
-          {/* Add to Favorite */}
-          <Popup
-            trigger={
-              <button
-                style={{ width: "25px", height: "25px", left: "8px" }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  localFavouriteList.includes(property._id)
-                    ? removeFromFavourites(property._id)
-                    : addToFavourites(property._id);
-                }}
-                className="group relative flex items-center justify-center"
-              >
-                {localFavouriteList.includes(property._id) ? (
-                  <FaHeart className="text-red-500 transition-all duration-300 group-hover:scale-110" />
-                ) : (
-                  <CiHeart className="text-red-500 transition-all duration-300 group-hover:text-red-800 group-hover:scale-110 bg-[#3E3E3E4D] h-[20px] w-[20px] p-[3px]" />
-                )}
-              </button>
+  const cards = useMemo(() => {
+    const filteredProperties = myProperties.filter((property) => {
+      if (!searchQuery.trim()) return true;
+      const searchLower = searchQuery.toLowerCase();
+      const firstNameMatch = property.firstName?.toLowerCase().includes(searchLower);
+      const lastNameMatch = property.lastName?.toLowerCase().includes(searchLower);
+      const addressMatch = property.address?.toLowerCase().includes(searchLower);
+      return firstNameMatch || lastNameMatch || addressMatch;
+    });
+
+    return filteredProperties.map((property) => (
+      <div
+        key={property._id}
+        className=" bg-black p-4 rounded-md hover:cursor-pointer relative"
+      >
+        <div className="relative">
+          <img
+            src={property.images[0]}
+            alt="Property"
+            className="relative h-[200px] w-full object-cover rounded-md mb-4"
+            onClick={() => navigate(`/property/${property.slug}`)}
+            loading="lazy"
+          />
+          <div
+            onClick={() =>
+              handleToggleAvailability(property._id, property.availabilityStatus)
             }
-            position="top center"
-            on="hover"
-            arrow={false}
-            contentStyle={{ textAlign: "center" }}
-          >
-            <div className="bg-gray-800 text-white text-center sm:text-center px-2 py-1 rounded text-sm">
-              {localFavouriteList.includes(property._id)
-                ? "Remove from Favorite"
-                : "Add to Favorite"}
-            </div>
-          </Popup>
-
-          {/* SHARE PROPERTY ICON WITH FUNCTIONALITY */}
-          {/* <a
-            href="#"
-            className="relative"
-            style={{ width: "25px", height: "25px", left: "10px" }}
-            onClick={(event) => {
-              event.preventDefault();
-              shareProperty(property.slug);
+            className="absolute top-4 left-4 text-white/75 lg:text-white text-xs lg:text-base uppercase px-1 lg:px-3 py-1 rounded-md"
+            style={{
+              backgroundColor:
+                property.availabilityStatus === "Available"
+                  ? "#236b62"
+                  : "#c71221",
+              textTransform: "capitalize",
             }}
           >
-            <CiShare2
-              className="bg-[#3E3E3E4D] h-[20px] w-[20px] p-[3px] mt-1"
-              style={{ color: "#40B5A8" }}
-            />
-          </a> */}
-          <Popup
-            arrow={false}
-            trigger={
-              <button
-                className="group relative flex items-center justify-center"
-                style={{ width: "25px", height: "25px", left: "8px" }}
-              >
-                <CiShare2
-                  className="bg-[#3E3E3E4D] h-[20px] w-[20px] p-[3px]"
-                  style={{ color: "#40B5A8" }}
-                />
-              </button>
-            }
-            position={"bottom right"}
-          >
-            {(close) => (
-              <div className="bg-slate-50 text-black rounded-full flex flex-col shadow-xl py-2 px-2 scale-90">
-                <div className="flex items-center gap-12 border border-black rounded-3xl px-2">
-                  <div className="px-2 py-2 text-sm truncate w-32">
-                    {`www.toletglobe.in/property/${property.slug}`}
-                  </div>
-                  <div>
-                    <button
-                      className="px-2 py-2 bg-[#40B5A8] text-white rounded-full"
-                      onClick={() => {
-                        navigator.clipboard.writeText(
-                          `www.toletglobe.in/property/${property.slug}`
-                        );
-                        close();
-                      }}
-                    >
-                      <FaRegCopy />
-                    </button>
+            {property.availabilityStatus}
+          </div>
+        </div>
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">
+            {property?.firstName} {property?.lastName}
+          </h3>
+          <div className="icon-box flex items-center justify-center">
+            {/* Add to Favorite */}
+            <Popup
+              trigger={
+                <button
+                  style={{ width: "25px", height: "25px", left: "8px" }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    localFavouriteList.includes(property._id)
+                      ? removeFromFavourites(property._id)
+                      : addToFavourites(property._id);
+                  }}
+                  className="group relative flex items-center justify-center"
+                >
+                  {localFavouriteList.includes(property._id) ? (
+                    <FaHeart className="text-red-500 transition-all duration-300 group-hover:scale-110" />
+                  ) : (
+                    <CiHeart className="text-red-500 transition-all duration-300 group-hover:text-red-800 group-hover:scale-110 bg-[#3E3E3E4D] h-[20px] w-[20px] p-[3px]" />
+                  )}
+                </button>
+              }
+              position="top center"
+              on="hover"
+              arrow={false}
+              contentStyle={{ textAlign: "center" }}
+            >
+              <div className="bg-gray-800 text-white text-center sm:text-center px-2 py-1 rounded text-sm">
+                {localFavouriteList.includes(property._id)
+                  ? "Remove from Favorite"
+                  : "Add to Favorite"}
+              </div>
+            </Popup>
+
+            <Popup
+              arrow={false}
+              trigger={
+                <button
+                  className="group relative flex items-center justify-center"
+                  style={{ width: "25px", height: "25px", left: "8px" }}
+                >
+                  <CiShare2
+                    className="bg-[#3E3E3E4D] h-[20px] w-[20px] p-[3px]"
+                    style={{ color: "#40B5A8" }}
+                  />
+                </button>
+              }
+              position={"bottom right"}
+            >
+              {(close) => (
+                <div className="bg-slate-50 text-black rounded-full flex flex-col shadow-xl py-2 px-2 scale-90">
+                  <div className="flex items-center gap-12 border border-black rounded-3xl px-2">
+                    <div className="px-2 py-2 text-sm truncate w-32">
+                      {`www.toletglobe.in/property/${property.slug}`}
+                    </div>
+                    <div>
+                      <button
+                        className="px-2 py-2 bg-[#40B5A8] text-white rounded-full"
+                        onClick={() => {
+                          navigator.clipboard.writeText(
+                            `www.toletglobe.in/property/${property.slug}`
+                          );
+                          close();
+                        }}
+                      >
+                        <FaRegCopy />
+                      </button>
+                    </div>
                   </div>
                 </div>
+              )}
+            </Popup>
+
+            <button
+              onClick={() => toggleOption(property._id)}
+              className="relative rounded-md  "
+              style={{ width: "25px", height: "25px", left: "10px" }}
+            >
+              <MdMoreVert className="bg-[#3E3E3E4D] h-[20px] w-[20px] p-[3px] " />
+            </button>
+            {/* Dropdown Menu */}
+            {showOption === property._id && (
+              <div className="absolute right-0 mt-[6.2rem] w-20 bg-white shadow-md rounded-md text-black overflow-hidden z-10">
+                <button
+                  onClick={() => handleEdit(property)}
+                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200 w-full text-sm"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(property._id)}
+                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200 w-full text-sm"
+                >
+                  Delete
+                </button>
               </div>
             )}
-          </Popup>
-
-          {/* new code */}
-          {/* <div> */}
-          {/* More Options (Three Dots) */}
-          <button
-            onClick={() => toggleOption(property._id)}
-            className="relative rounded-md  "
-            style={{ width: "25px", height: "25px", left: "10px" }}
-          >
-            <MdMoreVert className="bg-[#3E3E3E4D] h-[20px] w-[20px] p-[3px] " />
-          </button>
-          {/* Dropdown Menu */}
-          {showOption === property._id && (
-            <div className="absolute right-0 mt-[6.2rem] w-20 bg-white shadow-md rounded-md text-black overflow-hidden">
-              <button
-                onClick={() => handleEdit(property)}
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200 w-full text-sm"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDelete(property._id)}
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200 w-full text-sm"
-              >
-                Delete
-              </button>
-            </div>
-          )}
-          {/* </div> */}
+          </div>
         </div>
+        <p className="text-gray-400">
+          {property.locality}, {property.city}, India
+        </p>
+        <p className="text-gray-400 mt-1">Rs. {property.rent}</p>
       </div>
-      <p className="text-gray-400">
-        {property.locality}, {property.city}, India
-      </p>
-      <p className="text-gray-400 mt-1">Rs. {property.rent}</p>
-    </div>
-  ));
+    ));
+  }, [searchQuery, myProperties, localFavouriteList, showOption, navigate, handleToggleAvailability, removeFromFavourites, addToFavourites, toggleOption, handleEdit, handleDelete]);
 
   return (
     <>
       <div className="mt-7 md:mt-5">
-        <h1 className="w-full max-sm:text-center sm:ml-5 text-3xl font-bold text-white">
-          All Properties
-        </h1>
-        {myProperties.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pr-2">
-            {cards}
+        <div className="flex flex-col sm:flex-row justify-between items-center sm:items-end mb-6">
+          <h1 className="w-full max-sm:text-center sm:ml-5 text-3xl font-bold text-white mb-4 sm:mb-0">
+            All Properties
+          </h1>
+          <div className="w-full px-2 sm:px-0 sm:pr-4 flex justify-center sm:justify-end">
+            <input
+              type="text"
+              placeholder="Search by Name or Address..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-[100%] sm:w-[300px] px-4 py-2 bg-[#1a1a1a] text-white border border-gray-600 rounded-md focus:outline-none focus:border-[#40B5A8]"
+            />
           </div>
+        </div>
+        {myProperties.length > 0 ? (
+          cards.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pr-2 pl-2 sm:pl-5">
+              {cards}
+            </div>
+          ) : (
+            <div className="mt-10 min-h-screen">
+              <h6 className="text-gray-400 text-center text-xl sm:text-2xl font-bold py-4">
+                No properties match your search criteria.
+              </h6>
+            </div>
+          )
         ) : (
           <div className="mt-10 min-h-screen">
             <h6 className="text-gray-400 text-center text-xl sm:text-3xl font-bold py-4">
-              You have no properties yet!
+              There are no properties yet!
             </h6>
           </div>
         )}

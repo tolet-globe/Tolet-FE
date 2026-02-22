@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStateValue } from "../../../StateProvider";
 import { useSelector } from "react-redux";
@@ -22,9 +22,10 @@ import bhk from "../../../assets/propertyListing/bhk.png";
 import budget from "../../../assets/propertyListing/budget.png";
 
 import { API } from "../../../config/axios";
+import Service from "../../../services/Service";
 
 export default function CompareProperty({
-  favouriteList = [], 
+  favouriteList = [],
   setFavouriteList
 }) {
   const navigate = useNavigate();
@@ -33,25 +34,18 @@ export default function CompareProperty({
   const [showOnlyDifferences, setShowOnlyDifferences] = useState(false);
   [favouriteList, setFavouriteList] = useState([]);
 
-  const addToFavourites = async (propertyId) => {
-    console.log(authState);
-
+  const addToFavourites = useCallback(async (propertyId) => {
     try {
       if (!authState.status) {
         toast.error("Login First!");
         return navigate("/login", { replace: true });
       }
 
-      console.log(authState.userData.id);
-
       const token = localStorage.getItem("token");
 
-      const updateddata = await API.post(
-        `user/addToFavourites`,
-        {
-          userId: authState.userData.id,
-          propertyId: propertyId,
-        },
+      await Service.addToFavourites(
+        authState.userData.id,
+        propertyId,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -60,14 +54,14 @@ export default function CompareProperty({
       );
 
       toast.success("Added to favorites!");
-      setFavouriteList([...favouriteList, propertyId]);
+      setFavouriteList((prevList) => [...prevList, propertyId]);
     } catch (error) {
       console.log(error);
       toast.error("Failed to add to favorites");
     }
-  };
+  }, [authState.status, authState?.userData?.id, navigate]);
 
-  const removeFromFavourites = async (propertyId) => {
+  const removeFromFavourites = useCallback(async (propertyId) => {
     try {
       if (!authState.status) {
         toast.error("Login First!");
@@ -76,12 +70,9 @@ export default function CompareProperty({
 
       const token = localStorage.getItem("token");
 
-      await API.post(
-        "user/removeFromFavourites",
-        {
-          userId: authState.userData.id,
-          propertyId: propertyId,
-        },
+      await Service.removeFromFavourites(
+        authState.userData.id,
+        propertyId,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -90,14 +81,15 @@ export default function CompareProperty({
       );
 
       toast.success("Removed from favorites!");
-      setFavouriteList(favouriteList.filter((id) => id !== propertyId));
+      setFavouriteList((prevList) => prevList.filter((id) => id !== propertyId));
     } catch (error) {
       console.log(error);
       toast.error("Failed to remove from favorites");
     }
-  };
+  }, [authState.status, authState?.userData?.id, navigate]);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchFavouriteProperties = async () => {
       try {
         if (!authState?.userData?.id) {
@@ -106,11 +98,8 @@ export default function CompareProperty({
 
         const token = localStorage.getItem("token");
 
-        const response = await API.post(
-          "user/getFavourites",
-          {
-            userId: authState.userData.id,
-          },
+        const response = await Service.getFavourites(
+          authState.userData.id,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -118,17 +107,17 @@ export default function CompareProperty({
           }
         );
 
-        const favouriteList = response.data.favouritesList.favourites;
-
-        console.log(favouriteList);
-
-        setFavouriteList(favouriteList);
+        if (isMounted) {
+          const favouriteList = response.data.favouritesList.favourites;
+          setFavouriteList(favouriteList);
+        }
       } catch (error) {
         console.log("Error fetching favourite properties:", error);
       }
     };
     fetchFavouriteProperties();
-  }, []);
+    return () => { isMounted = false; };
+  }, [authState?.userData?.id]);
 
 
   useEffect(() => {
@@ -137,52 +126,35 @@ export default function CompareProperty({
     }
   }, [compareProperty, navigate]);
 
-  const handleRemoveProperty = (property) => {
+  const handleRemoveProperty = useCallback((property) => {
     dispatch({
       type: "REMOVE_FROM_COMPARE",
       item: property,
     });
-  };
+  }, [dispatch]);
 
-  const hasDifferences = (key) => {
+  const hasDifferences = useCallback((key) => {
+    if (!compareProperty.length) return false;
     const firstValue = compareProperty[0][key];
     return compareProperty.some((property) => property[key] !== firstValue);
-  };
+  }, [compareProperty]);
 
-  const filteredPropertyKeys = [
+  const filteredPropertyKeys = useMemo(() => [
     { key: "locality", label: "Location", icon: <IoLocationOutline /> },
-    {
-      key: "spaceType",
-      label: "Space type",
-      icon: <MdOutlineSpaceDashboard />,
-    },
-    {
-      key: "propertyType",
-      label: "Property Type",
-      icon: <RiBuilding2Line className="text-xl text-black" />,
-    },
-    {
-      key: "preference",
-      label: "Preference",
-      icon: <img src={preferences} alt="preferences" width={25} height={25} />,
-    },
+    { key: "spaceType", label: "Space type", icon: <MdOutlineSpaceDashboard /> },
+    { key: "propertyType", label: "Property Type", icon: <RiBuilding2Line className="text-xl text-black" /> },
+    { key: "preference", label: "Preference", icon: <img src={preferences} alt="preferences" width={25} height={25} /> },
     { key: "bachelors", label: "If Bachelors", icon: <BsGenderAmbiguous /> },
     { key: "type", label: "Type", icon: <RiBuilding2Line /> },
-    {
-      key: "bhk",
-      label: "BHK",
-      icon: <img src={bhk} alt="preferences" width={25} height={25} />,
-    },
-    {
-      key: "rent",
-      label: "Budget",
-      icon: <img src={budget} alt="preferences" width={25} height={25} />,
-    },
-  ];
+    { key: "bhk", label: "BHK", icon: <img src={bhk} alt="preferences" width={25} height={25} /> },
+    { key: "rent", label: "Budget", icon: <img src={budget} alt="preferences" width={25} height={25} /> },
+  ], []);
 
-  const filteredProperties = showOnlyDifferences
-    ? filteredPropertyKeys.filter(({ key }) => hasDifferences(key))
-    : filteredPropertyKeys;
+  const filteredProperties = useMemo(() => {
+    return showOnlyDifferences
+      ? filteredPropertyKeys.filter(({ key }) => hasDifferences(key))
+      : filteredPropertyKeys;
+  }, [showOnlyDifferences, filteredPropertyKeys, hasDifferences]);
 
   return (
     <>
@@ -227,11 +199,11 @@ export default function CompareProperty({
               <div
                 key={index}
                 className="bg-white shadow-md rounded-lg p-3 relative flex flex-col overflow-hidden w-full lg:w-[298.926px] h-[386.523px] box-border lg:ml-0"
-                // style={{
-                //   width: "298.926px", // Ensure consistent width
-                //   height: "386.523px",
-                //   boxSizing: "border-box",
-                // }}
+              // style={{
+              //   width: "298.926px", // Ensure consistent width
+              //   height: "386.523px",
+              //   boxSizing: "border-box",
+              // }}
               >
                 <span
                   className="w-7 h-7 bg-[#FF0000] text-white absolute top-0 right-0 z-10 text-center flex items-center justify-center shadow-md text-[44px] pb-2 cursor-pointer"
@@ -254,7 +226,7 @@ export default function CompareProperty({
                   <div
                     className="absolute top-3 left-3 text-white text-xs  uppercase px-3 pr-3 py-1  bg-teal-700 rounded"
                     style={{
-                      
+
                       textTransform: "capitalize",
                     }}
                   >
@@ -267,9 +239,8 @@ export default function CompareProperty({
                       <button className="banner-actions-btn flex items-center gap-1 text-white">
                         <FaLocationDot className="text-sm" />
                         <address className="text-xs">
-                          {`${property.locality}, ${
-                            property.city || "Lucknow"
-                          }`}
+                          {`${property.locality}, ${property.city || "Lucknow"
+                            }`}
                         </address>
                       </button>
                     </div>
@@ -394,7 +365,7 @@ export default function CompareProperty({
                     <div className="card-author flex items-center gap-2">
                       <figure className="author-avatar w-6 h-6 overflow-hidden rounded-full">
                         <img
-                         src={property.ownerProfilePicture || defaultUser}
+                          src={property.ownerProfilePicture || defaultUser}
                           alt={property.firstName}
                           className="w-full h-full object-cover"
                         />

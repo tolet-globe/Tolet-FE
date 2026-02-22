@@ -1,7 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useStateValue } from "../../../StateProvider";
+import {
+  setProperties as setReduxProperties,
+  setAvailableProperties as setReduxAvailableProperties,
+  setLoading as setReduxLoading,
+  setNoPropertiesFound as setReduxNoPropertiesFound,
+} from "../../../redux/store/propertySlice";
 import { ClipLoader } from "react-spinners";
 
 import { FaSearch } from "react-icons/fa";
@@ -29,52 +35,150 @@ import "./listings.css";
 import PoiMarkers from "./PoiMarkers";
 
 import { API } from "../../../config/axios";
+import Service from "../../../services/Service";
+
+const cityCoordinates = {
+  Lucknow: { lat: 26.8467, lng: 80.9462 },
+  Ayodhya: { lat: 26.7922, lng: 82.1998 },
+  Vellore: { lat: 12.9165, lng: 79.1325 },
+  Kota: { lat: 25.2138, lng: 75.8648 },
+};
+
+const localityCoordinates = {
+  Lucknow: {
+    Kamta: { lat: 26.8868, lng: 81.0586 },
+    Nishatganj: { lat: 26.87, lng: 80.95 },
+    Hazratganj: { lat: 26.85, lng: 80.95 },
+    "Gomti Nagar": { lat: 26.85, lng: 81.0 },
+    "Sushant Golf City": { lat: 26.78, lng: 81.02 },
+    Khargapur: { lat: 26.83, lng: 81.03 },
+    Chinhat: { lat: 26.88, lng: 81.05 },
+    "Indira Nagar": { lat: 26.87, lng: 81.0 },
+    Aliganj: { lat: 26.88, lng: 80.94 },
+    "Vinay Khand": { lat: 26.85, lng: 81.0 },
+    "Patrakar Puram": { lat: 26.85, lng: 81.0 },
+    "Awadh Vihar Colony": { lat: 26.78, lng: 81.02 },
+    "Sunder Nagar": { lat: 26.87, lng: 80.95 },
+    "Amity University": { lat: 26.78, lng: 81.02 },
+    "Ismail Ganj": { lat: 26.85, lng: 80.95 },
+    Rajajipuram: { lat: 26.85, lng: 80.9 },
+  },
+  Ayodhya: {
+    Bakhtiarpur: { lat: 26.7922, lng: 82.1998 },
+    Bhadohi: { lat: 26.785, lng: 82.21 },
+  },
+  Vellore: {
+    "Vellore Cantonment": { lat: 12.9461, lng: 79.1789 },
+    "Gandhi Nagar": { lat: 12.9547, lng: 79.1407 },
+    "Vellore East": { lat: 12.9349, lng: 79.1469 },
+    "Vellore West": { lat: 12.9349, lng: 79.1469 },
+  },
+  Kota: {
+    "Kota Cantonment": { lat: 25.18, lng: 75.85 },
+    "Kota East": { lat: 25.18, lng: 75.87 },
+    "Kota West": { lat: 25.18, lng: 75.83 },
+    "Kota Central": { lat: 25.18, lng: 75.85 },
+  },
+};
+
+const sortPropertiesByAvailability = (properties) => {
+  return properties.slice().sort((a, b) => {
+    const statusA = a.availabilityStatus.trim().toLowerCase();
+    const statusB = b.availabilityStatus.trim().toLowerCase();
+
+    if (statusA === "available" && statusB !== "available") {
+      return -1;
+    } else if (statusA !== "available" && statusB === "available") {
+      return 1;
+    }
+    return 0;
+  });
+};
+
+// Helper function to get fallback coordinates
+const getFallbackCoordinates = (property, selectedCity) => {
+  // First try locality coordinates
+  if (
+    property.locality &&
+    localityCoordinates[selectedCity] &&
+    localityCoordinates[selectedCity][property.locality]
+  ) {
+    return localityCoordinates[selectedCity][property.locality];
+  }
+
+  // Then try area coordinates
+  if (
+    property.area &&
+    localityCoordinates[selectedCity] &&
+    localityCoordinates[selectedCity][property.area]
+  ) {
+    return localityCoordinates[selectedCity][property.area];
+  }
+
+  // Try to extract area from address
+  if (property.address) {
+    const addressLower = property.address.toLowerCase();
+    const availableAreas = localityCoordinates[selectedCity] || {};
+
+    for (const [area, coords] of Object.entries(availableAreas)) {
+      if (addressLower.includes(area.toLowerCase())) {
+        return coords;
+      }
+    }
+  }
+
+  return null;
+};
+
+// Helper function to check if coordinates are equal (with tolerance)
+const areCoordsEqual = (coord1, coord2, tolerance = 0.001) => {
+  return (
+    Math.abs(coord1.lat - coord2.lat) < tolerance &&
+    Math.abs(coord1.lng - coord2.lng) < tolerance
+  );
+};
+
+// Helper function to add random offset to properties with duplicate coordinates
+const addRandomOffsetToDuplicates = (markers) => {
+  const coordinateGroups = {};
+
+  // Group markers by coordinates
+  markers.forEach((marker) => {
+    const key = `${marker.location.lat.toFixed(
+      4
+    )},${marker.location.lng.toFixed(4)}`;
+    if (!coordinateGroups[key]) {
+      coordinateGroups[key] = [];
+    }
+    coordinateGroups[key].push(marker);
+  });
+
+  // Add small random offsets to duplicates
+  Object.entries(coordinateGroups).forEach(([key, group]) => {
+    if (group.length > 1) {
+      console.log(
+        `Adding offsets to ${group.length} properties with duplicate coordinates:`,
+        key
+      );
+
+      group.forEach((marker, index) => {
+        if (index > 0) {
+          // Keep the first one as-is
+          const offsetLat = (Math.random() - 0.5) * 0.002; // ~200m offset
+          const offsetLng = (Math.random() - 0.5) * 0.002;
+
+          marker.location.lat += offsetLat;
+          marker.location.lng += offsetLng;
+          marker.hasOffset = true;
+        }
+      });
+    }
+  });
+
+  return markers;
+};
 
 const Listing = () => {
-  // Add this near the top of your component, with other constants
-  const cityCoordinates = {
-    Lucknow: { lat: 26.8467, lng: 80.9462 },
-    Ayodhya: { lat: 26.7922, lng: 82.1998 },
-    Vellore: { lat: 12.9165, lng: 79.1325 },
-    Kota: { lat: 25.2138, lng: 75.8648 },
-  };
-
-  const localityCoordinates = {
-    Lucknow: {
-      Kamta: { lat: 26.8868, lng: 81.0586 },
-      Nishatganj: { lat: 26.87, lng: 80.95 },
-      Hazratganj: { lat: 26.85, lng: 80.95 },
-      "Gomti Nagar": { lat: 26.85, lng: 81.0 },
-      "Sushant Golf City": { lat: 26.78, lng: 81.02 },
-      Khargapur: { lat: 26.83, lng: 81.03 },
-      Chinhat: { lat: 26.88, lng: 81.05 },
-      "Indira Nagar": { lat: 26.87, lng: 81.0 },
-      Aliganj: { lat: 26.88, lng: 80.94 },
-      "Vinay Khand": { lat: 26.85, lng: 81.0 },
-      "Patrakar Puram": { lat: 26.85, lng: 81.0 },
-      "Awadh Vihar Colony": { lat: 26.78, lng: 81.02 },
-      "Sunder Nagar": { lat: 26.87, lng: 80.95 },
-      "Amity University": { lat: 26.78, lng: 81.02 },
-      "Ismail Ganj": { lat: 26.85, lng: 80.95 },
-      Rajajipuram: { lat: 26.85, lng: 80.9 },
-    },
-    Ayodhya: {
-      Bakhtiarpur: { lat: 26.7922, lng: 82.1998 },
-      Bhadohi: { lat: 26.785, lng: 82.21 },
-    },
-    Vellore: {
-      "Vellore Cantonment": { lat: 12.9461, lng: 79.1789 },
-      "Gandhi Nagar": { lat: 12.9547, lng: 79.1407 },
-      "Vellore East": { lat: 12.9349, lng: 79.1469 },
-      "Vellore West": { lat: 12.9349, lng: 79.1469 },
-    },
-    Kota: {
-      "Kota Cantonment": { lat: 25.18, lng: 75.85 },
-      "Kota East": { lat: 25.18, lng: 75.87 },
-      "Kota West": { lat: 25.18, lng: 75.83 },
-      "Kota Central": { lat: 25.18, lng: 75.85 },
-    },
-  };
 
   const { city } = useParams();
   const navigate = useNavigate();
@@ -88,9 +192,11 @@ const Listing = () => {
   const [isOpen, SetIsOpen] = useState(false);
   const [totalPages, setTotalPages] = useState();
 
-  const [properties, setProperties] = useState([]);
-
-  const [loading, setLoading] = useState(false);
+  const dispatchRedux = useDispatch();
+  const properties = useSelector((state) => state.property.properties);
+  const setProperties = (payload) => dispatchRedux(setReduxProperties(payload));
+  const loading = useSelector((state) => state.property.loading);
+  const setLoading = (payload) => dispatchRedux(setReduxLoading(payload));
   const [mode, setMode] = useState(false);
   const [showCity, setShowCity] = useState(false);
   const [showArea, setShowArea] = useState(false);
@@ -104,13 +210,15 @@ const Listing = () => {
 
   const [filterCount, setFilterCount] = useState(0);
 
-  const [noPropertiesFound, setNoPropertiesFound] = useState(false);
+  const noPropertiesFound = useSelector((state) => state.property.noPropertiesFound);
+  const setNoPropertiesFound = (payload) => dispatchRedux(setReduxNoPropertiesFound(payload));
   const [selectedLocality, setSelectedLocality] = useState("");
   const [selectedArea, setSelectedArea] = useState([]);
   const [moreArea, setMoreArea] = useState(false);
   // const [selectedCity, setSelectedCity] = useState("");
   const [selectedSort, setSelectedSort] = useState("Sort");
-  const [availableProperties, setAvailableProperties] = useState([]);
+  const availableProperties = useSelector((state) => state.property.availableProperties);
+  const setAvailableProperties = (payload) => dispatchRedux(setReduxAvailableProperties(payload));
   const [mapCenter, setMapCenter] = useState(cityCoordinates["Lucknow"]);
   const [hovered, setHovered] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -253,11 +361,8 @@ const Listing = () => {
 
         const token = localStorage.getItem("token");
 
-        const response = await API.post(
-          "user/getFavourites",
-          {
-            userId: authState.userData.id,
-          },
+        const response = await Service.getFavourites(
+          authState.userData.id,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -337,102 +442,7 @@ const Listing = () => {
     });
   };
 
-  const sortPropertiesByAvailability = (properties) => {
-    return properties.slice().sort((a, b) => {
-      const statusA = a.availabilityStatus.trim().toLowerCase();
-      const statusB = b.availabilityStatus.trim().toLowerCase();
 
-      if (statusA === "available" && statusB !== "available") {
-        return -1;
-      } else if (statusA !== "available" && statusB === "available") {
-        return 1;
-      }
-      return 0;
-    });
-  };
-
-  // Helper function to get fallback coordinates
-  const getFallbackCoordinates = (property, selectedCity) => {
-    // First try locality coordinates
-    if (
-      property.locality &&
-      localityCoordinates[selectedCity] &&
-      localityCoordinates[selectedCity][property.locality]
-    ) {
-      return localityCoordinates[selectedCity][property.locality];
-    }
-
-    // Then try area coordinates
-    if (
-      property.area &&
-      localityCoordinates[selectedCity] &&
-      localityCoordinates[selectedCity][property.area]
-    ) {
-      return localityCoordinates[selectedCity][property.area];
-    }
-
-    // Try to extract area from address
-    if (property.address) {
-      const addressLower = property.address.toLowerCase();
-      const availableAreas = localityCoordinates[selectedCity] || {};
-
-      for (const [area, coords] of Object.entries(availableAreas)) {
-        if (addressLower.includes(area.toLowerCase())) {
-          return coords;
-        }
-      }
-    }
-
-    return null;
-  };
-
-  // Helper function to check if coordinates are equal (with tolerance)
-  const areCoordsEqual = (coord1, coord2, tolerance = 0.001) => {
-    return (
-      Math.abs(coord1.lat - coord2.lat) < tolerance &&
-      Math.abs(coord1.lng - coord2.lng) < tolerance
-    );
-  };
-
-  // Helper function to add random offset to properties with duplicate coordinates
-  const addRandomOffsetToDuplicates = (markers) => {
-    const coordinateGroups = {};
-
-    // Group markers by coordinates
-    markers.forEach((marker) => {
-      const key = `${marker.location.lat.toFixed(
-        4
-      )},${marker.location.lng.toFixed(4)}`;
-      if (!coordinateGroups[key]) {
-        coordinateGroups[key] = [];
-      }
-      coordinateGroups[key].push(marker);
-    });
-
-    // Add small random offsets to duplicates
-    Object.entries(coordinateGroups).forEach(([key, group]) => {
-      if (group.length > 1) {
-        console.log(
-          `Adding offsets to ${group.length} properties with duplicate coordinates:`,
-          key
-        );
-
-        group.forEach((marker, index) => {
-          if (index > 0) {
-            // Keep the first one as-is
-            const offsetLat = (Math.random() - 0.5) * 0.002; // ~200m offset
-            const offsetLng = (Math.random() - 0.5) * 0.002;
-
-            marker.location.lat += offsetLat;
-            marker.location.lng += offsetLng;
-            marker.hasOffset = true;
-          }
-        });
-      }
-    });
-
-    return markers;
-  };
 
   const fetchAndFilterProperties = async (
     selectedCity,
@@ -499,7 +509,7 @@ const Listing = () => {
       console.log("Fetching from URL:", url);
 
       try {
-        const response = await API.get(url);
+        const response = await Service.getPropertiesByFilter(queryString);
         propertyData = response.data.data || [];
 
         console.log("Raw property data received:", propertyData);
@@ -705,7 +715,7 @@ const Listing = () => {
             `&locality=${encodeURIComponent(selectedLocality)}`
           );
           const fallbackUrl = `property/filter?${queryString}`;
-          const fallbackResponse = await API.get(fallbackUrl);
+          const fallbackResponse = await Service.getPropertiesByFilter(queryString);
           propertyData = fallbackResponse.data.data || [];
 
           // Process fallback data the same way

@@ -109,7 +109,7 @@ export default function LandlordDashboardSidebar() {
               </div>
             </NavLink>
 
-            {authState?.userData?.role === "admin" && (
+            {(authState?.userData?.role === "admin" || localStorage.getItem("role") === "admin") && (
               <NavLink
                 to="all-properties"
                 className={({ isActive }) =>

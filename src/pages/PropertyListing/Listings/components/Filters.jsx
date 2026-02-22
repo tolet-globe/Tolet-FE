@@ -21,20 +21,27 @@ const Filters = ({
   const navigate = useNavigate();
   const [pendingFilters, setPendingFilters] = useState(filters);
 
+  useEffect(() => {
+    setPendingFilters(filters);
+  }, [filters]);
+
   // Define filter options in a single object for reusability
   const filterOptions = {
     House: {
       bhk: ["+ 1 BHK", "+ 2 BHK", "+ 3 BHK", "+ 4 BHK", "+ >4 BHK"],
       houseType: ["Fully Furnished", "Semi Furnished", "Not Furnished"],
       preference: ["Family", "Bachelors"],
+      ownerLocation: ["Lives in same property", "Lives in different property"],
     },
     Flats: {
       bhk: ["+ 1 BHK", "+ 2 BHK", "+ 3 BHK", "+ 4 BHK", "+ 5 BHK"],
       houseType: ["Fully Furnished", "Semi Furnished", "Not Furnished"],
       preference: ["Family", "Bachelors"],
+      ownerLocation: ["Lives in same property", "Lives in different property"],
     },
     PG: {
       genderPreference: ["Girls", "Boys", "Any"],
+      ownerLocation: ["Lives in same property", "Lives in different property"],
     },
   };
 
@@ -55,43 +62,46 @@ const Filters = ({
       }
     });
   };
-const seeResults = () => {
-  setFilters(pendingFilters);
-  const queryParams = new URLSearchParams();
+  const seeResults = () => {
+    setFilters(pendingFilters);
+    const queryParams = new URLSearchParams();
 
-  if (pendingFilters.bhk.length > 0) {
-    queryParams.set("bhk", pendingFilters.bhk.join(","));
-  }
-  if (pendingFilters.houseType.length > 0) {
-    queryParams.set("houseType", pendingFilters.houseType.join(","));
-  }
-  if (pendingFilters.preferenceHousing) {
-    queryParams.set("preferenceHousing", pendingFilters.preferenceHousing);
-  }
-  if (pendingFilters.genderPreference) {
-    queryParams.set("genderPreference", pendingFilters.genderPreference);
-  }
+    if (pendingFilters.bhk.length > 0) {
+      queryParams.set("bhk", pendingFilters.bhk.join(","));
+    }
+    if (pendingFilters.houseType.length > 0) {
+      queryParams.set("houseType", pendingFilters.houseType.join(","));
+    }
+    if (pendingFilters.preferenceHousing) {
+      queryParams.set("preferenceHousing", pendingFilters.preferenceHousing);
+    }
+    if (pendingFilters.genderPreference) {
+      queryParams.set("genderPreference", pendingFilters.genderPreference);
+    }
+    if (pendingFilters.ownerLocation) {
+      queryParams.set("ownerLocation", pendingFilters.ownerLocation);
+    }
 
-  if (selectedCategory === "House") {
-    queryParams.set("residential", "House");
-    queryParams.delete("commercial");
-  } else if (selectedCategory === "Flats") {
-    queryParams.set("residential", "Flat");
-    queryParams.delete("commercial");
-  } else if (selectedCategory === "PG") {
-    queryParams.set("residential", "PG");
-    queryParams.delete("commercial");
-  }
+    if (selectedCategory === "House") {
+      queryParams.set("residential", "House");
+      queryParams.delete("commercial");
+    } else if (selectedCategory === "Flats") {
+      queryParams.set("residential", "Flat");
+      queryParams.delete("commercial");
+    } else if (selectedCategory === "PG") {
+      queryParams.set("residential", "PG");
+      queryParams.delete("commercial");
+    }
 
-  // Close the modal first
-  SetIsOpen(false); 
+    // Close the modal first
+    SetIsOpen(false);
 
-  // Then, navigate to the new URL
-  navigate(`?${queryParams.toString()}`);
-  
-  setCurrentPage(1);
-  fetchAndFilterProperties(city, selectedArea, selectedLocality);
-};
+    // Then, navigate to the new URL
+    navigate(`?${queryParams.toString()}`);
+
+    setCurrentPage(1);
+    fetchAndFilterProperties(city, selectedArea, selectedLocality);
+  };
   const handleCategoryClick = (category) => {
     // For residential categories, show the sub-filter menu
     if (["PG", "Flats", "House"].includes(category)) {
@@ -102,7 +112,7 @@ const seeResults = () => {
     // For commercial categories, apply filter and close the modal
     setSelectedCategory(null);
     const queryParams = new URLSearchParams();
-    
+
     // Set the commercial filter
     if (category === "Office") {
       queryParams.set("commercial", "Office");
@@ -120,11 +130,12 @@ const seeResults = () => {
       preferenceHousing: "",
       genderPreference: "",
       houseType: [],
+      ownerLocation: "",
     });
 
     // Navigate with the new query parameters
     navigate(`?${queryParams.toString()}`);
-    
+
     // Fetch and close
     fetchAndFilterProperties(city, selectedArea, selectedLocality);
     SetIsOpen(false); // This will close the modal
@@ -222,6 +233,27 @@ const seeResults = () => {
             </div>
           )}
 
+          {options.ownerLocation && (
+            <div className="flex flex-col">
+              <h3 className="text-left font-medium mb-3 lg:text-black text-white px-4">Owner Location</h3>
+              <div className="flex flex-col md:flex-row lg:flex-row gap-4 pl-[2rem]">
+                {options.ownerLocation.map((location) => (
+                  <label key={location} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="ownerLocation"
+                      value={location}
+                      checked={pendingFilters.ownerLocation === location}
+                      onChange={() => handlePendingFilterChange("ownerLocation", location)}
+                      className="appearance-none w-4 h-4 rounded-full border-2 border-white lg:border-black checked:bg-black checked:border-[#1890FF] checked:border-4 transition-all"
+                    />
+                    <span className="text-sm lg:text-black text-white">{location}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-between gap-4 p-[1rem] bg-[#1a1a1a] lg:bg-white">
             <button
               onClick={resetFilters}
@@ -245,9 +277,8 @@ const seeResults = () => {
   return (
     <>
       <div
-        className={`${
-          isOpen ? "block" : "hidden"
-        }w-full lg:w-fit lg:bg-white bg-[#232323] p-4 lg:p-1 top-full left-0 mt-1 shadow-sm lg:rounded-xl`}
+        className={`${isOpen ? "block" : "hidden"
+          }w-full lg:w-fit lg:bg-white bg-[#232323] p-4 lg:p-1 top-full left-0 mt-1 shadow-sm lg:rounded-xl`}
       >
         <div className="lg:hidden flex justify-between gap-1 pb-4">
           <p className="text-xl">Select Our Service</p>

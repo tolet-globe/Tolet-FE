@@ -67,8 +67,7 @@ export default function LandlordDashboardSidebar() {
           <div className="w-[100%] sm:w-auto">
             <NavLink
               className={({ isActive }) =>
-                ` ${linkStyle_1} ${
-                  isActive ? "bg-[#C8A117]" : ""
+                ` ${linkStyle_1} ${isActive ? "bg-[#C8A117]" : ""
                 } hover:bg-[#C8A117] transition-colors duration-200 mb-2`
               }
               end
@@ -98,8 +97,7 @@ export default function LandlordDashboardSidebar() {
             <NavLink
               to="my-properties"
               className={({ isActive }) =>
-                ` ${linkStyle_1} ${
-                  isActive ? "bg-[#C8A117]" : ""
+                ` ${linkStyle_1} ${isActive ? "bg-[#C8A117]" : ""
                 } hover:bg-[#C8A117] transition-colors duration-200 mb-2`
               }
             >
@@ -111,11 +109,27 @@ export default function LandlordDashboardSidebar() {
               </div>
             </NavLink>
 
+            {authState?.userData?.role === "admin" && (
+              <NavLink
+                to="all-properties"
+                className={({ isActive }) =>
+                  ` ${linkStyle_1} ${isActive ? "bg-[#C8A117]" : ""
+                  } hover:bg-[#C8A117] transition-colors duration-200 mb-2`
+                }
+              >
+                <div className="flex text-white-700">
+                  <AiOutlineHome size={27} className="mr-3" />
+                  <span className="text-base sm:block lg:text-xl">
+                    All Properties
+                  </span>
+                </div>
+              </NavLink>
+            )}
+
             <NavLink
               to="favourites"
               className={({ isActive }) =>
-                ` ${linkStyle_1} ${
-                  isActive ? "bg-[#C8A117]" : ""
+                ` ${linkStyle_1} ${isActive ? "bg-[#C8A117]" : ""
                 } hover:bg-[#C8A117] transition-colors duration-200 mb-2`
               }
             >
@@ -130,8 +144,7 @@ export default function LandlordDashboardSidebar() {
             <NavLink
               to="add-properties"
               className={({ isActive }) =>
-                ` ${linkStyle_1} ${
-                  isActive ? "bg-[#C8A117]" : ""
+                ` ${linkStyle_1} ${isActive ? "bg-[#C8A117]" : ""
                 } hover:bg-[#C8A117] transition-colors duration-200 mb-2`
               }
             >
@@ -183,8 +196,7 @@ export default function LandlordDashboardSidebar() {
                   <NavLink
                     to="settings/profile"
                     className={({ isActive }) =>
-                      `${linkStyle_2} ${
-                        isActive ? "bg-[#C8A117]" : ""
+                      `${linkStyle_2} ${isActive ? "bg-[#C8A117]" : ""
                       } max-sm:flex-1 max-sm:justify-center w-full hover:bg-[#C8A117] transition-colors duration-200 sm:mt-2`
                     }
                     onClick={() => {
@@ -203,8 +215,7 @@ export default function LandlordDashboardSidebar() {
                   <NavLink
                     to="settings/account-security"
                     className={({ isActive }) =>
-                      `${linkStyle_2} ${
-                        isActive ? "bg-[#C8A117]" : ""
+                      `${linkStyle_2} ${isActive ? "bg-[#C8A117]" : ""
                       } max-sm:flex-1 max-sm:justify-center w-full hover:bg-[#C8A117] transition-colors duration-200 sm:mt-2`
                     }
                     onClick={() => {

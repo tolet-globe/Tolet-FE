@@ -92,7 +92,7 @@ export default function LandlordDashboardEditProperties() {
     try {
       const updatedFormData = {
         ...formData,
-        userId: userInfo.id,
+        userId: formData.userId || userInfo.id,
         pincode: Number(formData.pincode),
       };
 
@@ -231,8 +231,8 @@ export default function LandlordDashboardEditProperties() {
       >
         {/* Form Body */}
         <div>
-          <Form 
-            formData={formData} 
+          <Form
+            formData={formData}
             setFormData={setFormData}
             setIsMarkerMoved={setIsMarkerMoved}
             isMarkerMoved={isMarkerMoved}

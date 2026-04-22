@@ -191,6 +191,7 @@ const Listing = () => {
   // State for managing the login popup
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [showCount, setShowCount] = useState(3);
+  const [fetchError, setFetchError] = useState(null);
 
   const [Hamburger, SetHamburger] = useState(false);
   const [isOpen, SetIsOpen] = useState(false);
@@ -454,6 +455,7 @@ const Listing = () => {
     selectedLocality
   ) => {
     setLoading(true);
+    setFetchError(null);
     let propertyData = [];
 
     try {
@@ -762,6 +764,7 @@ const Listing = () => {
         setNoPropertiesFound(propertyData.length === 0);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setFetchError(error.response?.data?.error || error.response?.data?.message || "Error connecting to server. Please try again.");
         setProperties([]);
         setNoPropertiesFound(true);
       }
@@ -769,6 +772,7 @@ const Listing = () => {
       setLoading(false);
     } catch (error) {
       console.error("Error fetching properties:", error);
+      setFetchError(error.message || "An unexpected error occurred.");
       setLoading(false);
       setProperties([]);
       setNoPropertiesFound(true);
@@ -1427,7 +1431,24 @@ const Listing = () => {
         </div>
 
         <div className="pt-3">
-          {properties.length === 0 ? (
+          {fetchError ? (
+            <div className="flex flex-col items-center justify-center p-8 bg-red-50 rounded-lg border border-red-200 mt-10 mx-4">
+              <p className="text-red-600 text-lg font-semibold mb-2">
+                Unable to load properties
+              </p>
+              <p className="text-red-500 text-center mb-6 max-w-md">
+                {fetchError}
+              </p>
+              <button
+                onClick={() => {
+                  fetchAndFilterProperties(city, selectedArea, selectedLocality);
+                }}
+                className="px-6 py-2 bg-[#6CC1B6] text-white rounded-lg hover:bg-[#5bb1a6] transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : properties.length === 0 ? (
             <p className="text-center text-lg font-semibold mt-10">
               No properties found
             </p>

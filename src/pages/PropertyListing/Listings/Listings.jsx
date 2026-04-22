@@ -167,8 +167,12 @@ const addRandomOffsetToDuplicates = (markers) => {
           const offsetLat = (Math.random() - 0.5) * 0.002; // ~200m offset
           const offsetLng = (Math.random() - 0.5) * 0.002;
 
-          marker.location.lat += offsetLat;
-          marker.location.lng += offsetLng;
+          // Create a new location object to avoid mutating read-only properties
+          // or shared references
+          marker.location = {
+            lat: marker.location.lat + offsetLat,
+            lng: marker.location.lng + offsetLng,
+          };
           marker.hasOffset = true;
         }
       });
@@ -647,7 +651,7 @@ const Listing = () => {
                 );
                 return {
                   key: property.slug,
-                  location: fallbackCoords,
+                  location: { ...fallbackCoords },
                   property: property,
                   isFallback: true,
                 };
@@ -674,7 +678,7 @@ const Listing = () => {
                 );
                 return {
                   key: property.slug,
-                  location: fallbackCoords,
+                  location: { ...fallbackCoords },
                   property: property,
                   isFallback: true,
                 };
@@ -739,6 +743,7 @@ const Listing = () => {
             })
             .filter((marker) => marker !== null);
 
+          allPropertyMarkers = addRandomOffsetToDuplicates(allPropertyMarkers);
           setAvailableProperties(allPropertyMarkers);
         }
 

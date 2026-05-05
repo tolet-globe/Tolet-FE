@@ -245,6 +245,7 @@ const customSelectStyles = {
                 Square Feet Area<span className="text-red-600">*</span>
               </label>
               <input
+                id="squareFeetArea"
                 required
                 type="number"
                 placeholder="0"
@@ -265,6 +266,7 @@ const customSelectStyles = {
                 Owner's Location<span className="text-red-600">*</span>
               </label>
               <Select
+                id="ownerLocation"
                 required
                 styles={customSelectStyles}
                 placeholder="Select owner's location"
@@ -294,6 +296,7 @@ const customSelectStyles = {
                 Preference<span className="text-red-600">*</span>
               </label>
               <Select
+                id="preference"
                 required
                 styles={customSelectStyles}
                 placeholder="Select preference"
@@ -320,6 +323,7 @@ const customSelectStyles = {
                   Gender<span className="text-red-600">*</span>
                 </label>
                 <Select
+                  id="bachelors"
                   required
                   styles={customSelectStyles}
                   placeholder="Select gender"
@@ -346,6 +350,7 @@ const customSelectStyles = {
                 Furnished Type<span className="text-red-600">*</span>
               </label>
               <Select
+                id="type"
                 required
                 styles={customSelectStyles}
                 placeholder="Select furnished type"
@@ -368,6 +373,7 @@ const customSelectStyles = {
                 BHK<span className="text-red-600">*</span>
               </label>
               <Select
+                id="bhk"
                 required
                 styles={customSelectStyles}
                 placeholder="Select BHK"
@@ -390,6 +396,7 @@ const customSelectStyles = {
                 Floors<span className="text-red-600">*</span>
               </label>
               <input
+                id="floor"
                 type="number"
                 min="0"
                 step="1"
@@ -415,6 +422,7 @@ const customSelectStyles = {
                 Washroom<span className="text-red-600">*</span>
               </label>
               <Select
+                id="typeOfWashroom"
                 required
                 styles={customSelectStyles}
                 placeholder="Select Washroom"

@@ -388,6 +388,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
             First Name <span className="text-red-600">*</span>
           </label>
           <input
+            id="firstName"
             type="text"
             placeholder="Enter first name"
             required
@@ -421,6 +422,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
             Phone Number<span className="text-red-600">*</span>
           </label>
           <input
+            id="ownersContactNumber"
             type="tel"
             placeholder="Enter phone number"
             required
@@ -497,6 +499,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
             Address<span className="text-red-600">*</span>
           </label>
           <input
+            id="address"
             type="text"
             placeholder="Enter full address"
             required
@@ -516,6 +519,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
             City<span className="text-red-600">*</span>
           </label>
           <Select
+            id="city"
             options={cityOptions.map((city) => ({ value: city, label: city }))}
             value={
               formData.city
@@ -534,6 +538,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
             Locality
           </label>
           <CreatableSelect
+            id="locality"
             isDisabled={!formData.city}
             placeholder="Select or enter locality"
             value={
@@ -563,6 +568,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
             Area<span className="text-red-600">*</span>
           </label>
           <input
+            id="area"
             type="text"
             placeholder="Type to search area"
             required
@@ -610,6 +616,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
             Nearest Landmark<span className="text-red-600">*</span>
           </label>
           <input
+            id="nearestLandmark"
             required
             type="text"
             placeholder="Enter Nearest Landmark"
@@ -659,6 +666,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
             Property<span className="text-red-600">*</span>
           </label>
           <Select
+            id="propertyType"
             required
             styles={customSelectStyles}
             placeholder="Select property type"
@@ -683,6 +691,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
             Space<span className="text-red-600">*</span>
           </label>
           <Select
+            id="spaceType"
             required
             styles={customSelectStyles}
             placeholder="Select space type"

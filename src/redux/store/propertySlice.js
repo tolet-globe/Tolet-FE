@@ -15,6 +15,7 @@ const initialState = {
   searchQuery: "",
   loading: false,
   noPropertiesFound: false,
+  lastFetchedParams: null,
 };
 
 const propertySlice = createSlice({
@@ -42,6 +43,9 @@ const propertySlice = createSlice({
     setNoPropertiesFound: (state, action) => {
       state.noPropertiesFound = action.payload;
     },
+    setLastFetchedParams: (state, action) => {
+      state.lastFetchedParams = action.payload;
+    },
   },
 });
 
@@ -53,6 +57,7 @@ export const {
   setSearchQuery,
   setLoading,
   setNoPropertiesFound,
+  setLastFetchedParams,
 } = propertySlice.actions;
 
 export default propertySlice.reducer;

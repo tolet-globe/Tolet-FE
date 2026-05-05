@@ -130,6 +130,13 @@ export default function LandlordDashboardEditProperties() {
       for (const field of requiredFields) {
         if (!updatedFormData[field] || updatedFormData[field] === "NA") {
           toast.error(`Please fill in the ${field} field`);
+          const element = document.getElementById(field);
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth", block: "center" });
+            if (element.tagName === "INPUT" || element.tagName === "TEXTAREA") {
+              element.focus();
+            }
+          }
           setLoading(false);
           return;
         }
@@ -166,6 +173,14 @@ export default function LandlordDashboardEditProperties() {
       console.log("-> pincode : ", updatedFormData.pincode);
       console.log("-> Data to send : ", Object.fromEntries(dataToSend));
 
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        toast.error("Authentication required. Please log in again.");
+        setLoading(false);
+        return;
+      }
+
       // Send updated data to backend
 
       const { data } = await API.patch(
@@ -186,7 +201,7 @@ export default function LandlordDashboardEditProperties() {
     } catch (error) {
       console.error("Error updating property:", error);
       const errorMessage =
-        error.response?.data?.message || "Failed to update property.";
+        error.response?.data?.message || error.response?.data?.error || "Failed to update property.";
       toast.error(errorMessage);
     } finally {
       setLoading(false);

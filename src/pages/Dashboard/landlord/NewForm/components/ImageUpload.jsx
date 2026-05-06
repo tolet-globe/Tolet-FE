@@ -1,13 +1,23 @@
 import React from "react";
 import { IoClose } from "react-icons/io5";
+import { toast } from "react-hot-toast";
 
 const ImageUpload = ({ formData, setFormData }) => {
 const handleImageSubmit = (e, index) => {
   const existingImages = formData.images || [];
   const newFiles = Array.from(e.target.files);
 
+  const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+
+  for (const file of newFiles) {
+    if (file.size > MAX_SIZE) {
+      toast.error("image file size exceeded");
+      return;
+    }
+  }
+
   if (existingImages.length + newFiles.length > 7) {
-    alert("You can upload a maximum of 7 images.");
+    toast.error("You can upload a maximum of 7 images.");
     return;
   }
 

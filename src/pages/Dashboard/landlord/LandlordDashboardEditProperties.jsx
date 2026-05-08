@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
 
-import Form from "./NewForm/components/Details";
-import AdditionalInfo from "./NewForm/components/AdditionalInfo";
-// import Coupon from "./NewForm/components/Coupon";
-import ImageUpload from "./NewForm/components/ImageUpload";
+const Form = lazy(() => import("./NewForm/components/Details"));
+const AdditionalInfo = lazy(() => import("./NewForm/components/AdditionalInfo"));
+const ImageUpload = lazy(() => import("./NewForm/components/ImageUpload"));
 
 import { API } from "../../../config/axios";
 import { useSelector } from "react-redux";
@@ -257,15 +256,17 @@ export default function LandlordDashboardEditProperties() {
       >
         {/* Form Body */}
         <div>
-          <Form
-            formData={formData}
-            setFormData={setFormData}
-            setIsMarkerMoved={setIsMarkerMoved}
-            isMarkerMoved={isMarkerMoved}
-          />
-          <AdditionalInfo formData={formData} setFormData={setFormData} />
-          {/* <Coupon /> */}
-          <ImageUpload formData={formData} setFormData={setFormData} />
+          <Suspense fallback={<div className="flex justify-center p-10"><ClipLoader color="#6CC1B6" size={50} /></div>}>
+            <Form
+              formData={formData}
+              setFormData={setFormData}
+              setIsMarkerMoved={setIsMarkerMoved}
+              isMarkerMoved={isMarkerMoved}
+            />
+            <AdditionalInfo formData={formData} setFormData={setFormData} />
+            {/* <Coupon /> */}
+            <ImageUpload formData={formData} setFormData={setFormData} />
+          </Suspense>
         </div>
 
         {/* Form Footer */}

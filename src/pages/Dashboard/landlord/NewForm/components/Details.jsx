@@ -4,113 +4,16 @@ import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 import { toast } from "react-toastify";
 import areas from "../../../../PropertyListing/Listings/areas";
+import { 
+  cityOptions, 
+  spaceTypeOptions, 
+  allOptions, 
+  cityLocalityData, 
+  cityCoordinates, 
+  localityCoordinates 
+} from "../../../../../constants/propertyData";
 
 const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
-  const cityOptions = ["Lucknow", "Ayodhya", "Vellore", "Kota"];
-  const spaceTypeOptions = ["Residential", "Commercial"];
-  const allOptions = ["House", "Flat", "PG", "Office", "Shop", "Warehouse"];
-
-  const cityLocalityData = {
-    Lucknow: {
-      localities: [
-        "Kamta",
-        "Nishatganj",
-        "Hazratganj",
-        "Gomti Nagar",
-        "Sushant Golf City",
-        "Khargapur",
-        "Chinhat",
-        "Indira Nagar",
-        "Aliganj",
-        "Vinay Khand",
-        "Patrakar Puran",
-        "Awadh Vihar Colony",
-        "Sunder Nagar",
-        "Amity University",
-        "Ismail Ganj",
-        "Rajajipuram",
-      ],
-      pincodes: [
-        "226028",
-        "226001",
-        "226001",
-        "226010",
-        "226030",
-        "226010",
-        "226028",
-        "226016",
-        "226024",
-        "226010",
-        "226010",
-        "226015",
-        "226005",
-        "226010",
-        "226010",
-        "226010",
-      ],
-    },
-    Ayodhya: {
-      localities: ["Bakhtiarpur", "Bhadohi"],
-      pincodes: ["224121", "224122"],
-    },
-    Vellore: {
-      localities: [
-        "Vellore Cantonment",
-        "Gandhi Nagar",
-        "Vellore East",
-        "Vellore West",
-      ],
-      pincodes: ["632001", "632002", "632003", "632004"],
-    },
-    Kota: {
-      localities: ["Kota Cantonment", "Kota East", "Kota West", "Kota Central"],
-      pincodes: ["324001", "324002", "324003", "324004"],
-    },
-  };
-
-  const cityCoordinates = {
-    Lucknow: { lat: 26.8467, lng: 80.9462 },
-    Ayodhya: { lat: 26.7922, lng: 82.1998 },
-    Vellore: { lat: 12.9165, lng: 79.1325 },
-    Kota: { lat: 25.2138, lng: 75.8648 },
-  };
-
-  const localityCoordinates = {
-    Lucknow: {
-      Kamta: { lat: 26.8868, lng: 81.0586 },
-      Nishatganj: { lat: 26.87, lng: 80.95 },
-      Hazratganj: { lat: 26.85, lng: 80.95 },
-      "Gomti Nagar": { lat: 26.85, lng: 81.0 },
-      "Sushant Golf City": { lat: 26.78, lng: 81.02 },
-      Khargapur: { lat: 26.83, lng: 81.03 },
-      Chinhat: { lat: 26.88, lng: 81.05 },
-      "Indira Nagar": { lat: 26.87, lng: 81.0 },
-      Aliganj: { lat: 26.88, lng: 80.94 },
-      "Vinay Khand": { lat: 26.85, lng: 81.0 },
-      "Patrakar Puram": { lat: 26.85, lng: 81.0 },
-      "Awadh Vihar Colony": { lat: 26.78, lng: 81.02 },
-      "Sunder Nagar": { lat: 26.87, lng: 80.95 },
-      "Amity University": { lat: 26.78, lng: 81.02 },
-      "Ismail Ganj": { lat: 26.85, lng: 80.95 },
-      Rajajipuram: { lat: 26.85, lng: 80.9 },
-    },
-    Ayodhya: {
-      Bakhtiarpur: { lat: 26.7922, lng: 82.1998 },
-      Bhadohi: { lat: 26.785, lng: 82.21 },
-    },
-    Vellore: {
-      "Vellore Cantonment": { lat: 12.9461, lng: 79.1789 },
-      "Gandhi Nagar": { lat: 12.9547, lng: 79.1407 },
-      "Vellore East": { lat: 12.9349, lng: 79.1469 },
-      "Vellore West": { lat: 12.9349, lng: 79.1469 },
-    },
-    Kota: {
-      "Kota Cantonment": { lat: 25.18, lng: 75.85 },
-      "Kota East": { lat: 25.18, lng: 75.87 },
-      "Kota West": { lat: 25.18, lng: 75.83 },
-      "Kota Central": { lat: 25.18, lng: 75.85 },
-    },
-  };
 
   const mapRef = useRef(null);
   const [map, setMap] = useState(null);

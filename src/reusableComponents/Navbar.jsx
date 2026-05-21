@@ -310,6 +310,28 @@ const Navbar = () => {
                   </NavLink>
                 }
 
+                {(authState?.userData?.role === "admin" || localStorage.getItem("role") === "admin") && (
+                  <NavLink
+                    to="/landlord-dashboard/all-properties"
+                    className={({ isActive }) =>
+                      ` ${linkStyle_1} ${
+                        isActive ? "bg-[#C8A117]" : ""
+                      } hover:bg-[#C8A117] transition-colors duration-200 `
+                    }
+                    onClick={() => {
+                      setSettingFlag(false);
+                      setToggelSetting(false);
+                    }}
+                  >
+                    <div className="flex text-white-700">
+                      <AiOutlineHome size={27} className="mr-3" />
+                      <span className="w-28 sm:w-32 text-base sm:block lg:text-xl">
+                        All Properties
+                      </span>
+                    </div>
+                  </NavLink>
+                )}
+
                 <NavLink
                   to="/landlord-dashboard/favourites"
                   className={({ isActive }) =>

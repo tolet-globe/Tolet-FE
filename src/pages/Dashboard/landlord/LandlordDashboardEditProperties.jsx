@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
 
-import Form from "./NewForm/components/Details";
-import AdditionalInfo from "./NewForm/components/AdditionalInfo";
-// import Coupon from "./NewForm/components/Coupon";
-import ImageUpload from "./NewForm/components/ImageUpload";
+const Form = lazy(() => import("./NewForm/components/Details"));
+const AdditionalInfo = lazy(() => import("./NewForm/components/AdditionalInfo"));
+const ImageUpload = lazy(() => import("./NewForm/components/ImageUpload"));
 
 import { API } from "../../../config/axios";
 import { useSelector } from "react-redux";
@@ -130,6 +129,13 @@ export default function LandlordDashboardEditProperties() {
       for (const field of requiredFields) {
         if (!updatedFormData[field] || updatedFormData[field] === "NA") {
           toast.error(`Please fill in the ${field} field`);
+          const element = document.getElementById(field);
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth", block: "center" });
+            if (element.tagName === "INPUT" || element.tagName === "TEXTAREA") {
+              element.focus();
+            }
+          }
           setLoading(false);
           return;
         }
@@ -137,22 +143,36 @@ export default function LandlordDashboardEditProperties() {
 
       const dataToSend = new FormData();
 
-      Object.entries(updatedFormData).forEach(([key, value]) => {
+      // List of fields that are actually allowed/expected by the backend for update
+      const allowedFields = [
+        "userId", "firstName", "lastName", "ownersContactNumber", 
+        "ownersAlternateContactNumber", "ownerLocation", "locality", 
+        "pincode", "city", "address", "spaceType", "propertyType", 
+        "area", "coupon", "minRent", "maxRent", "rent", "security", 
+        "petsAllowed", "preference", "bachelors", "type", "bhk", 
+        "floor", "nearestLandmark", "typeOfWashroom", "coolingFacility", 
+        "carParking", "locationLink", "squareFeetArea", "appliances", 
+        "amenities", "availabilityStatus", "aboutTheProperty", 
+        "latitude", "longitude", "subscriptionPlan", "removedImages", "images", "videos"
+      ];
+
+      allowedFields.forEach((key) => {
+        const value = updatedFormData[key];
+        if (value === undefined || value === null) return;
+
         if (Array.isArray(value)) {
-          if (key === "images") {
-            // Only send File objects (new images), not URL strings (existing images)
-            value.forEach((image) => {
-              if (image instanceof File) {
-                dataToSend.append("images", image);
+          if (key === "images" || key === "videos") {
+            // Only send File objects (new media), not URL strings (existing media)
+            value.forEach((file) => {
+              if (file instanceof File) {
+                dataToSend.append(key, file);
               }
             });
           } else if (key === "removedImages") {
-            // Send removed image URLs as JSON string
             if (value.length > 0) {
               dataToSend.append("removedImages", JSON.stringify(value));
             }
           } else if (key === "appliances" || key === "amenities") {
-            // Send arrays as JSON strings or individual items
             value.forEach((item) => dataToSend.append(key, item));
           } else {
             value.forEach((item) => dataToSend.append(key, item));
@@ -163,18 +183,23 @@ export default function LandlordDashboardEditProperties() {
       });
 
       console.log("-> updated from data : ", updatedFormData);
-      console.log("-> pincode : ", updatedFormData.pincode);
       console.log("-> Data to send : ", Object.fromEntries(dataToSend));
 
-      // Send updated data to backend
+      const token = localStorage.getItem("token");
 
+      if (!token) {
+        toast.error("Authentication required. Please log in again.");
+        setLoading(false);
+        return;
+      }
+
+      // Send updated data to backend
       const { data } = await API.patch(
         `/property/update-property/${id}`,
         dataToSend,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -186,7 +211,7 @@ export default function LandlordDashboardEditProperties() {
     } catch (error) {
       console.error("Error updating property:", error);
       const errorMessage =
-        error.response?.data?.message || "Failed to update property.";
+        error.response?.data?.message || error.response?.data?.error || "Failed to update property.";
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -231,15 +256,17 @@ export default function LandlordDashboardEditProperties() {
       >
         {/* Form Body */}
         <div>
-          <Form
-            formData={formData}
-            setFormData={setFormData}
-            setIsMarkerMoved={setIsMarkerMoved}
-            isMarkerMoved={isMarkerMoved}
-          />
-          <AdditionalInfo formData={formData} setFormData={setFormData} />
-          {/* <Coupon /> */}
-          <ImageUpload formData={formData} setFormData={setFormData} />
+          <Suspense fallback={<div className="flex justify-center p-10"><ClipLoader color="#6CC1B6" size={50} /></div>}>
+            <Form
+              formData={formData}
+              setFormData={setFormData}
+              setIsMarkerMoved={setIsMarkerMoved}
+              isMarkerMoved={isMarkerMoved}
+            />
+            <AdditionalInfo formData={formData} setFormData={setFormData} />
+            {/* <Coupon /> */}
+            <ImageUpload formData={formData} setFormData={setFormData} />
+          </Suspense>
         </div>
 
         {/* Form Footer */}

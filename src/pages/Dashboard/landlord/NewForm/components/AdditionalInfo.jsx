@@ -1,6 +1,16 @@
 import Select from "react-select";
 import Pricing from "../PricngCard";
 import { useState,useRef,useLayoutEffect } from "react";
+import { 
+  preferenceOptions, 
+  genderOptions, 
+  furnishedOptions, 
+  bhkOptions, 
+  washroomOptions, 
+  ownerLocationOptions, 
+  appliancesOptions, 
+  amenitiesOptions 
+} from "../../../../../constants/propertyData";
 
 const MAX_VISIBLE = 3; // show only 3 chips at a time
 const CustomMultiValueContainer = (props) => {
@@ -108,69 +118,6 @@ const customSelectStyles = {
 
  
   
-  const preferenceOptions = [
-    { value: "Bachelors", label: "Bachelors" },
-    { value: "Family", label: "Family" },
-    { value: "Both", label: "Both" },
-  ];
-
-  const genderOptions = [
-    { value: "Boys", label: "Boys" },
-    { value: "Girls", label: "Girls" },
-    { value: "Both", label: "Both" },
-  ];
-
-  const furnishedOptions = [
-    { value: "Not Furnished", label: "Not Furnished" },
-    { value: "Semi Furnished", label: "Semi Furnished" },
-    { value: "Fully Furnished", label: "Fully Furnished" },
-  ];
-
-  const bhkOptions = [
-    { value: "1", label: "1 BHK" },
-    { value: "2", label: "2 BHK" },
-    { value: "3", label: "3 BHK" },
-    { value: "4", label: "4 BHK" },
-    { value: "5", label: "5 BHK" },
-  ];
-
-  const washroomOptions = [
-    { value: "Indian", label: "Indian" },
-    { value: "Western", label: "Western" },
-    { value: "Both", label: "Both" },
-  ];
-
-  const ownerLocationOptions = [
-    { value: "Lives in same property", label: "Lives in same property" },
-    {
-      value: "Lives in different property",
-      label: "Lives in different property",
-    },
-    { value: "Lives in different city", label: "Lives in different city" },
-  ];
-
-  const appliancesOptions = [
-    { value: "Refrigerator", label: "Refrigerator" },
-    { value: "Washing Machine", label: "Washing Machine" },
-    { value: "Air Conditioner", label: "Air Conditioner" },
-    { value: "Geyser", label: "Geyser" },
-    { value: "Microwave", label: "Microwave" },
-    { value: "Water Purifier", label: "Water Purifier" },
-    { value: "TV", label: "TV" },
-    { value: "Inverter", label: "Inverter" },
-  ];
-
-  const amenitiesOptions = [
-    { value: "Lift", label: "Lift" },
-    { value: "Parking", label: "Parking" },
-    { value: "Power Backup", label: "Power Backup" },
-    { value: "Swimming Pool", label: "Swimming Pool" },
-    { value: "Gardern", label: "Gardern" },
-    { value: "Gym", label: "Gym" },
-    { value: "Security Guard", label: "Security Guard" },
-    { value: "Wi-Fi", label: "Wi-Fi" },
-  ];
-
   const handleOnChangeAppliances = (selectedOptions) => {
     const values = selectedOptions.map((option) => option.value);
     setFormData((formData) => {
@@ -245,6 +192,7 @@ const customSelectStyles = {
                 Square Feet Area<span className="text-red-600">*</span>
               </label>
               <input
+                id="squareFeetArea"
                 required
                 type="number"
                 placeholder="0"
@@ -265,6 +213,7 @@ const customSelectStyles = {
                 Owner's Location<span className="text-red-600">*</span>
               </label>
               <Select
+                id="ownerLocation"
                 required
                 styles={customSelectStyles}
                 placeholder="Select owner's location"
@@ -294,6 +243,7 @@ const customSelectStyles = {
                 Preference<span className="text-red-600">*</span>
               </label>
               <Select
+                id="preference"
                 required
                 styles={customSelectStyles}
                 placeholder="Select preference"
@@ -320,6 +270,7 @@ const customSelectStyles = {
                   Gender<span className="text-red-600">*</span>
                 </label>
                 <Select
+                  id="bachelors"
                   required
                   styles={customSelectStyles}
                   placeholder="Select gender"
@@ -346,6 +297,7 @@ const customSelectStyles = {
                 Furnished Type<span className="text-red-600">*</span>
               </label>
               <Select
+                id="type"
                 required
                 styles={customSelectStyles}
                 placeholder="Select furnished type"
@@ -368,6 +320,7 @@ const customSelectStyles = {
                 BHK<span className="text-red-600">*</span>
               </label>
               <Select
+                id="bhk"
                 required
                 styles={customSelectStyles}
                 placeholder="Select BHK"
@@ -390,6 +343,7 @@ const customSelectStyles = {
                 Floors<span className="text-red-600">*</span>
               </label>
               <input
+                id="floor"
                 type="number"
                 min="0"
                 step="1"
@@ -415,6 +369,7 @@ const customSelectStyles = {
                 Washroom<span className="text-red-600">*</span>
               </label>
               <Select
+                id="typeOfWashroom"
                 required
                 styles={customSelectStyles}
                 placeholder="Select Washroom"

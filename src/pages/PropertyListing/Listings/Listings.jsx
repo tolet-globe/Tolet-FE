@@ -7,6 +7,7 @@ import {
   setAvailableProperties as setReduxAvailableProperties,
   setLoading as setReduxLoading,
   setNoPropertiesFound as setReduxNoPropertiesFound,
+  setLastFetchedParams as setReduxLastFetchedParams,
 } from "../../../redux/store/propertySlice";
 import { ClipLoader } from "react-spinners";
 
@@ -167,8 +168,12 @@ const addRandomOffsetToDuplicates = (markers) => {
           const offsetLat = (Math.random() - 0.5) * 0.002; // ~200m offset
           const offsetLng = (Math.random() - 0.5) * 0.002;
 
-          marker.location.lat += offsetLat;
-          marker.location.lng += offsetLng;
+          // Create a new location object to avoid mutating read-only properties
+          // or shared references
+          marker.location = {
+            lat: marker.location.lat + offsetLat,
+            lng: marker.location.lng + offsetLng,
+          };
           marker.hasOffset = true;
         }
       });
@@ -187,6 +192,7 @@ const Listing = () => {
   // State for managing the login popup
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [showCount, setShowCount] = useState(3);
+  const [fetchError, setFetchError] = useState(null);
 
   const [Hamburger, SetHamburger] = useState(false);
   const [isOpen, SetIsOpen] = useState(false);
@@ -219,6 +225,8 @@ const Listing = () => {
   const [selectedSort, setSelectedSort] = useState("Sort");
   const availableProperties = useSelector((state) => state.property.availableProperties);
   const setAvailableProperties = (payload) => dispatchRedux(setReduxAvailableProperties(payload));
+  const lastFetchedParams = useSelector((state) => state.property.lastFetchedParams);
+  const setLastFetchedParams = (payload) => dispatchRedux(setReduxLastFetchedParams(payload));
   const [mapCenter, setMapCenter] = useState(cityCoordinates["Lucknow"]);
   const [hovered, setHovered] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -449,7 +457,26 @@ const Listing = () => {
     selectedArea,
     selectedLocality
   ) => {
+    // Generate a unique key for the current request parameters
+    const currentParamsKey = JSON.stringify({
+      selectedCity,
+      selectedArea: [...(selectedArea || [])].sort(),
+      selectedLocality,
+      filters,
+    });
+
+    // If properties are already loaded for these parameters, don't fetch again
+    if (
+      (properties.length > 0 || noPropertiesFound) &&
+      lastFetchedParams === currentParamsKey &&
+      !loading
+    ) {
+      console.log("Using cached properties from Redux");
+      return;
+    }
+
     setLoading(true);
+    setFetchError(null);
     let propertyData = [];
 
     try {
@@ -647,7 +674,7 @@ const Listing = () => {
                 );
                 return {
                   key: property.slug,
-                  location: fallbackCoords,
+                  location: { ...fallbackCoords },
                   property: property,
                   isFallback: true,
                 };
@@ -674,7 +701,7 @@ const Listing = () => {
                 );
                 return {
                   key: property.slug,
-                  location: fallbackCoords,
+                  location: { ...fallbackCoords },
                   property: property,
                   isFallback: true,
                 };
@@ -739,6 +766,7 @@ const Listing = () => {
             })
             .filter((marker) => marker !== null);
 
+          allPropertyMarkers = addRandomOffsetToDuplicates(allPropertyMarkers);
           setAvailableProperties(allPropertyMarkers);
         }
 
@@ -755,8 +783,10 @@ const Listing = () => {
 
         setProperties(propertyData);
         setNoPropertiesFound(propertyData.length === 0);
+        setLastFetchedParams(currentParamsKey); // Store the params used for this fetch
       } catch (error) {
         console.error("Error fetching data:", error);
+        setFetchError(error.response?.data?.error || error.response?.data?.message || "Error connecting to server. Please try again.");
         setProperties([]);
         setNoPropertiesFound(true);
       }
@@ -764,6 +794,7 @@ const Listing = () => {
       setLoading(false);
     } catch (error) {
       console.error("Error fetching properties:", error);
+      setFetchError(error.message || "An unexpected error occurred.");
       setLoading(false);
       setProperties([]);
       setNoPropertiesFound(true);
@@ -823,31 +854,38 @@ const Listing = () => {
   const sortProperties = (properties, sortType) => {
     let sortedProperties = [...properties];
 
-    if (sortType === "price-low-high") {
-      sortedProperties.sort((a, b) => {
+    sortedProperties.sort((a, b) => {
+      // 1. Availability Status Priority (Available first)
+      const statusA = (a.availabilityStatus || "").trim().toLowerCase();
+      const statusB = (b.availabilityStatus || "").trim().toLowerCase();
+
+      if (statusA === "available" && statusB !== "available") {
+        return -1;
+      } else if (statusA !== "available" && statusB === "available") {
+        return 1;
+      }
+
+      // 2. Secondary sorting based on sortType
+      if (sortType === "price-low-high") {
         const rentA = parseFloat(a.rent) || 0;
         const rentB = parseFloat(b.rent) || 0;
         return rentA - rentB;
-      });
-    } else if (sortType === "price-high-low") {
-      sortedProperties.sort((a, b) => {
+      } else if (sortType === "price-high-low") {
         const rentA = parseFloat(a.rent) || 0;
         const rentB = parseFloat(b.rent) || 0;
         return rentB - rentA;
-      });
-    } else if (sortType === "most-trending") {
-      sortedProperties.sort((a, b) => {
+      } else if (sortType === "most-trending") {
         const reviewsA = a.reviews ? a.reviews.length : 0;
         const reviewsB = b.reviews ? b.reviews.length : 0;
         return reviewsB - reviewsA;
-      });
-    } else if (sortType === "date-uploaded") {
-      sortedProperties.sort((a, b) => {
+      } else if (sortType === "date-uploaded") {
         const dateA = new Date(a.createdAt);
         const dateB = new Date(b.createdAt);
         return dateB - dateA;
-      });
-    }
+      }
+
+      return 0;
+    });
 
     return sortedProperties;
   };
@@ -1422,7 +1460,24 @@ const Listing = () => {
         </div>
 
         <div className="pt-3">
-          {properties.length === 0 ? (
+          {fetchError ? (
+            <div className="flex flex-col items-center justify-center p-8 bg-red-50 rounded-lg border border-red-200 mt-10 mx-4">
+              <p className="text-red-600 text-lg font-semibold mb-2">
+                Unable to load properties
+              </p>
+              <p className="text-red-500 text-center mb-6 max-w-md">
+                {fetchError}
+              </p>
+              <button
+                onClick={() => {
+                  fetchAndFilterProperties(city, selectedArea, selectedLocality);
+                }}
+                className="px-6 py-2 bg-[#6CC1B6] text-white rounded-lg hover:bg-[#5bb1a6] transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : properties.length === 0 ? (
             <p className="text-center text-lg font-semibold mt-10">
               No properties found
             </p>

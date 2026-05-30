@@ -123,6 +123,14 @@ export default function LandlordDashboardAddProperties() {
     for (const field of requiredFields) {
       if (!updatedFormData[field] || updatedFormData[field] === "NA") {
         toast.error(`Please fill in the ${field} field`);
+        const element = document.getElementById(field);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+          // If it's a regular input, focus it
+          if (element.tagName === "INPUT" || element.tagName === "TEXTAREA") {
+            element.focus();
+          }
+        }
         setLoading(false);
         return;
       }
@@ -151,10 +159,14 @@ export default function LandlordDashboardAddProperties() {
     });
 
     const token = localStorage.getItem("token");
-    // console.log("Token: ", token);
+
+    if (!userInfo || !userInfo.id) {
+      toast.error("User information not found. Please log in again.");
+      setLoading(false);
+      return;
+    }
 
     if (!token) {
-      console.error("No token found in localStorage");
       toast.error("Authentication required. Please log in again.");
       setLoading(false);
       return;
@@ -216,7 +228,7 @@ export default function LandlordDashboardAddProperties() {
       navigate(`/property/${data.property.slug}`);
     } catch (err) {
       const errorMessage =
-        err.response?.data?.message || "Error submitting form";
+        err.response?.data?.message || err.response?.data?.error || "Error submitting form";
       toast.error(errorMessage);
       console.error("Error submitting form:", errorMessage);
       console.error("Full error:", err);

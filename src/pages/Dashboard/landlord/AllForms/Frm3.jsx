@@ -54,6 +54,7 @@ export default function Frm3({ formData, setFormData }) {
           <div className="flex-1">
             <label className="text-gray-200 font-bold text-lg">Security Amount (If Applicable)</label>
             <input
+              id="securityAmount"
               required
               type="text"
               placeholder="₹ 5,00,000"
@@ -67,6 +68,7 @@ export default function Frm3({ formData, setFormData }) {
               Rent Amount <span className="text-red-800">*</span>
             </label>
             <input
+              id="rentAmount"
               required
               type="text"
               placeholder="₹ 25,000"

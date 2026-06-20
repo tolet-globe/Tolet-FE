@@ -309,6 +309,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
             Last Name<span className="text-red-600">*</span>
           </label>
           <input
+            id="lastName"
             type="text"
             placeholder="Enter last name"
             className="bg-black w-[100%] h-14 p-3 rounded-md border-[1.5px] border-[#C8C8C8] placeholder:text-[#C8C8C8] text-white"
@@ -540,6 +541,7 @@ const Form = ({ formData, setFormData, setIsMarkerMoved, isMarkerMoved }) => {
             Pin Code<span className="text-red-600">*</span>
           </label>
           <input
+            id="pincode"
             type="text"
             placeholder="Pin Code"
             required

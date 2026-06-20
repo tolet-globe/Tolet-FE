@@ -280,6 +280,7 @@ export default function Frm1({ formData, setFormData }) {
             Last Name
           </label>
           <input
+            id="lastName"
             type="text"
             placeholder="Last Name"
             className="bg-black w-[100%] h-14 p-3 rounded-md border-[1.5px] border-[#C8C8C8] placeholder:text-[#C8C8C8]"

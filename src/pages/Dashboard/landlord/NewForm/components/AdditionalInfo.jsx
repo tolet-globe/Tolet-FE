@@ -1491,6 +1491,7 @@ const customSelectStyles = {
             Security Amount (If Applicable)
           </label>
           <input
+            id="securityAmount"
             required
             type="number"
             min="0"
@@ -1527,6 +1528,7 @@ const customSelectStyles = {
           {formData.propertyType === "PG" ? (
             <div className="flex gap-4">
               <input
+                id="minRent"
                 type="number"
                 placeholder="Min rent"
                 required
@@ -1552,6 +1554,7 @@ const customSelectStyles = {
               />
 
               <input
+                id="maxRent"
                 type="number"
                 placeholder="Max rent"
                 required
@@ -1580,6 +1583,7 @@ const customSelectStyles = {
             </div>
           ) : (
             <input
+              id="rentAmount"
               type="number"
               placeholder="Enter rent amount"
               required
